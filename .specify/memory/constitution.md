@@ -1,50 +1,127 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Judite Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Arquitetura em Camadas com Domínio no Centro
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+O backend Python é organizado nas camadas `domain`, `application` (handlers e use cases),
+`infrastructure` (repositories e integrações) e entrypoints (`apps`). Regras:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- `domain` (entidades, value objects, regras e erros de negócio) MUST NOT importar FastAPI,
+  SQLAlchemy, Alembic, clientes HTTP, SDK de MCP ou qualquer framework de infraestrutura.
+- As dependências MUST apontar para dentro: apps → application → domain; `infrastructure`
+  implementa interfaces (ports) declaradas em `domain`/`application`.
+- Use cases dependem de ports de repository, nunca de implementações concretas; implementações
+  são injetadas na composição de cada app.
+- A direção de dependência MUST ser verificada automaticamente (import-linter) no pipeline local
+  e de CI.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Racional: o domínio é compartilhado entre backend, MCP e workers; só é reutilizável se não
+carregar acoplamento com a infraestrutura de nenhum deles.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Entrypoints Finos via Mediator
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Rotas FastAPI, tools MCP e consumidores dos workers MUST apenas: validar e traduzir a entrada,
+despachar um comando/consulta ao mediator e traduzir o resultado para a saída do canal.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Entrypoints MUST NOT conter regra de negócio nem acessar repositories diretamente.
+- Cada comando/consulta MUST ter exatamente um handler registrado no mediator.
+- O mesmo comando MUST poder ser disparado por qualquer app sem duplicação de lógica.
+- A relação handler ↔ use case é definida no ADR 0002.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Racional: um caminho único por caso de uso deixa o comportamento igual em todos os canais e
+testável sem subir HTTP.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Shared e Domínio Reutilizáveis entre Apps
+
+O sistema é dividido em quatro serviços próprios: **frontend**, **backend**, **workers** e
+**mcp**, mais a Evolution API e as dependências de infraestrutura.
+
+- `backend`, `workers` e `mcp` são entrypoints do mesmo pacote Python e MAY importar `shared`,
+  `domain`, `application` e `infrastructure`.
+- Apps MUST NOT importar uns aos outros; o que for comum MUST ser promovido para uma camada
+  compartilhada.
+- `shared` contém apenas utilitários técnicos transversais (config, logging, erros base,
+  mediator) e MUST NOT conter regra de negócio.
+- O frontend fala apenas com o backend, via HTTP; MUST NOT acessar banco, Evolution API ou MCP.
+
+Racional: reuso real sem acoplar processos que são implantados e escalados de forma independente.
+
+### IV. Isolamento de Dados por Usuário (NON-NEGOTIABLE)
+
+- Todo dado de WhatsApp (números, conversas, mensagens, derivados de mídia, memórias) MUST
+  pertencer a um usuário dono, e toda consulta MUST ser filtrada pelo dono no use case ou no
+  repository, nunca só na interface.
+- Usuário comum MUST ver apenas os próprios números e dados; o admin vê usuários e números
+  conectados. Qualquer acesso do admin ao conteúdo de mensagens de outro usuário exige requisito
+  explícito na spec.
+- O MCP MUST expor apenas dados do usuário autenticado no conector.
+- Toda feature que lê dados de WhatsApp MUST ter teste que prove que um usuário não acessa dados
+  de outro.
+- Mensagens e derivados MUST ser expurgados ao fim do prazo de retenção configurado pelo admin;
+  arquivos de mídia originais MUST ser descartados após a extração de texto.
+
+Racional: a plataforma guarda conversas privadas de terceiros; vazamento entre usuários é o pior
+defeito possível.
+
+### V. Persistência via Repositories e Migrações Alembic
+
+- Todo acesso a dados MUST passar por um repository; SQL/ORM fora de `infrastructure` é proibido.
+- Toda mudança de schema MUST ser uma migração Alembic versionada no mesmo PR, com `upgrade` e
+  `downgrade` implementados.
+- O banco MUST NOT ser alterado manualmente fora de migrações.
+
+Racional: schema reproduzível em qualquer ambiente e domínio isolado da persistência.
+
+### VI. Testes por Camada (NON-NEGOTIABLE)
+
+- `domain` e `application` MUST ter testes unitários sem banco, rede ou framework (ports
+  substituídos por fakes).
+- Repositories e migrações MUST ter testes de integração contra PostgreSQL real.
+- Cada entrypoint (rota, tool MCP, consumidor) MUST ter teste de contrato cobrindo sucesso e erro.
+- Integrações externas (Evolution API, OpenAI, OpenRouter) MUST ser testadas com dublês nos
+  testes automatizados; chamadas reais só em testes manuais/smoke explícitos.
+- Os testes de cada história MUST estar nas próprias tarefas da história, não numa fase final.
+- TODO(TEST_POLICY): TDD obrigatório? cobertura mínima? (pendente do usuário)
+
+Racional: a arquitetura em camadas só se paga se cada camada for verificável isoladamente.
+
+## Stack e Restrições Técnicas
+
+- **Execução**: todos os serviços em Docker (Compose), implantados numa VPS.
+- **Frontend**: SPA web em React + TypeScript, servida por container próprio.
+- **Backend / MCP / Workers**: Python + FastAPI, padrão mediator (handlers e use cases),
+  repositories, SQLAlchemy e migrações Alembic; PostgreSQL como banco; Redis para filas e cache.
+- **WhatsApp**: Evolution API pela imagem oficial, sem fork. Integração somente leitura no MVP.
+- **IA**: transcrição e leitura de imagens via OpenAI; agente via OpenRouter, com modelo,
+  parâmetros e prompt configuráveis por usuário pelo admin.
+- **MCP**: servidor remoto para Claude Desktop, celular e web, com autenticação feita na
+  plataforma. Exige HTTPS público em produção.
+- **Segredos**: MUST NOT ser commitados; vêm de variáveis de ambiente (`.env` fora do git,
+  `.env.example` versionado).
+- **Configuração**: todo serviço MUST expor healthcheck e ler configuração só de ambiente.
+- Escolhas de bibliotecas e versões são registradas em ADRs em `docs/adr/`.
+
+## Fluxo de Desenvolvimento e Quality Gates
+
+- Spec-Driven Development com GitHub Spec Kit: spec → alinhamento (sem perguntas abertas que
+  afetem a feature) → checklist → plan → tasks → analyze → implement → converge.
+- Uma branch e um PR por feature (ou por fase, em features grandes); nunca commit direto na
+  `main`; commits em Conventional Commits.
+- Um PR só é mergeável com testes, lint, type-check (Python e TypeScript) e build passando,
+  `speckit-converge` retornando `Converged`, parecer do QA, revisão do Revisor de PR e GO do
+  Tech Lead.
+- Nenhum agente inventa requisito de negócio: gaps viram pergunta ao P.O e, se preciso, ao
+  usuário.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Esta constitution prevalece sobre outras práticas do projeto. `plan.md` MUST passar no
+  Constitution Check; violações exigem justificativa em "Complexity Tracking" ou ADR.
+- Emendas são propostas pelo Tech Lead com o Arquiteto, aprovadas pelo usuário e feitas via PR.
+- Versionamento semântico: MAJOR para remoção/redefinição incompatível de princípio; MINOR para
+  princípio ou seção nova ou expansão material; PATCH para clarificações.
+- O Revisor de PR e o Tech Lead verificam a conformidade em todo PR.
+- Orientação operacional do dia a dia fica em `CLAUDE.md`.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-10-30
