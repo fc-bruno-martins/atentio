@@ -1,0 +1,11 @@
+# Configuração local e credenciais do Claude Code
+.claude/settings.local.json
+.claude/*.local.*
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# SO
+.DS_Store
