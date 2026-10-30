@@ -1,0 +1,62 @@
+openapi: 3.1.0
+info:
+  title: Judite — Status da plataforma
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Liveness do serviço (backend e mcp)
+      responses:
+        "200":
+          description: Serviço vivo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+  /api/status:
+    get:
+      summary: Estado consolidado dos componentes da plataforma
+      description: >
+        Sempre responde 200 quando o backend está no ar, mesmo com componentes indisponíveis.
+        O frontend trata erro de rede/5xx como "não foi possível consultar o estado".
+      responses:
+        "200":
+          description: Status consolidado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformStatus" }
+              example:
+                healthy: false
+                schema_version: "0001"
+                checked_at: "2026-10-30T12:00:00Z"
+                components:
+                  - { component: backend, available: true, detail: null }
+                  - { component: database, available: true, detail: null }
+                  - { component: queue, available: true, detail: null }
+                  - { component: evolution_api, available: true, detail: null }
+                  - { component: workers, available: false, detail: "sem heartbeat recente" }
+                  - { component: mcp, available: true, detail: null }
+components:
+  schemas:
+    PlatformStatus:
+      type: object
+      required: [healthy, schema_version, checked_at, components]
+      properties:
+        healthy: { type: boolean }
+        schema_version: { type: [string, "null"] }
+        checked_at: { type: string, format: date-time }
+        components:
+          type: array
+          items: { $ref: "#/components/schemas/ComponentStatus" }
+    ComponentStatus:
+      type: object
+      required: [component, available, detail]
+      properties:
+        component:
+          type: string
+          enum: [backend, database, queue, evolution_api, workers, mcp]
+        available: { type: boolean }
+        detail: { type: [string, "null"] }
