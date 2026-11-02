@@ -70,3 +70,9 @@ recomendado. Cada tarefa cita os requisitos que cobre.
 
 - Phase 1 → Phase 2 → US1 → US2 → US3 → US4 → Polish.
 - US3 depende de US2 para existir empresa pela interface; US4 depende só de US1.
+
+## Phase 8: Convergence
+
+- [x] T041 Contar os 15 minutos de bloqueio a partir da 5ª falha em `RedisLoginThrottle`, com teste em Redis real, per FR-003 (contradicts)
+- [x] T042 Traduzir violação de unicidade em convites e aceites simultâneos para erros de negócio, sem responder 500, com teste em Postgres real, per FR-016 e FR-018 (partial)
+- [x] T043 Criar `apps/frontend/README.md` registrando a origem do Design System, per T006 (partial)

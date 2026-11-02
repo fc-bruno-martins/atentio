@@ -269,3 +269,15 @@ async def test_desativar_empresa_encerra_sessoes_e_reativar_mantem_dados() -> No
 async def test_empresa_inexistente() -> None:
     with pytest.raises(NotFound):
         await World().company_service.update(uuid4(), name="Nada")
+
+
+async def test_aceite_simultaneo_vira_convite_invalido(monkeypatch: pytest.MonkeyPatch) -> None:
+    world = World()
+    await world.invite()
+
+    async def email_taken(_: User) -> None:
+        raise EmailInUse()
+
+    monkeypatch.setattr(world.users, "add", email_taken)
+    with pytest.raises(InvalidInvitation):
+        await world.invites.accept(world.token, "Nova Pessoa", PASSWORD)

@@ -5,9 +5,11 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.company import Company
+from app.domain.errors import EmailInUse, InvitationAlreadyPending
 from app.domain.invitation import Invitation, InvitationStatus
 from app.domain.password_reset import PasswordReset
 from app.domain.session import AuthSession
@@ -19,6 +21,11 @@ from app.models import (
     SessionModel,
     UserModel,
 )
+
+
+def _violates(error: IntegrityError, constraint: str) -> bool:
+    """A corrida entre requisições concorrentes só aparece na restrição do banco."""
+    return constraint in str(error.orig)
 
 
 def _company(m: CompanyModel) -> Company:
@@ -120,7 +127,12 @@ class SqlUserRepository:
                 is_active=user.is_active,
             )
         )
-        await self._db.flush()
+        try:
+            await self._db.flush()
+        except IntegrityError as error:
+            if _violates(error, "uq_users_email"):
+                raise EmailInUse() from error
+            raise
 
     async def get(self, user_id: UUID) -> User | None:
         model = await self._db.get(UserModel, user_id, populate_existing=True)
@@ -187,7 +199,12 @@ class SqlInvitationRepository:
                 last_send_failed_at=invitation.last_send_failed_at,
             )
         )
-        await self._db.flush()
+        try:
+            await self._db.flush()
+        except IntegrityError as error:
+            if _violates(error, "uq_invitations_pending_email"):
+                raise InvitationAlreadyPending() from error
+            raise
 
     async def _one(self, *conditions: object) -> Invitation | None:
         model = await self._db.scalar(

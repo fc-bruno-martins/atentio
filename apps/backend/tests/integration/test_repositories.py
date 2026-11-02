@@ -7,11 +7,13 @@ from app.container import Container
 from app.core.database import session_scope
 from app.domain.actor import Actor
 from app.domain.company import Company
-from app.domain.errors import LastAdmin
+from app.domain.errors import EmailInUse, InvitationAlreadyPending, LastAdmin
+from app.domain.invitation import Invitation
 from app.domain.session import AuthSession
 from app.domain.user import Role, User
 from app.repositories.identity import (
     SqlCompanyRepository,
+    SqlInvitationRepository,
     SqlSessionRepository,
     SqlUserRepository,
 )
@@ -100,3 +102,38 @@ async def test_dois_admins_nao_se_desativam_ao_mesmo_tempo(container: Container)
     assert sum(isinstance(r, LastAdmin) for r in results) == 1
     async with session_scope(container.session_factory) as db:
         assert await SqlUserRepository(db).count_active_admins(company.id) == 1
+
+
+async def test_email_duplicado_vira_erro_de_negocio(container: Container) -> None:
+    company, first, _ = await _seed(container)
+    clone = User.create(
+        company_id=company.id,
+        email=first.email,
+        name="Clone",
+        password_hash="h",
+        role=Role.USER,
+    )
+    with pytest.raises(EmailInUse):
+        async with session_scope(container.session_factory) as db:
+            await SqlUserRepository(db).add(clone)
+
+
+async def test_convite_pendente_duplicado_vira_erro_de_negocio(container: Container) -> None:
+    company, first, _ = await _seed(container)
+
+    def invitation(token_hash: str) -> Invitation:
+        return Invitation.create(
+            company_id=company.id,
+            email="novo@acme.com",
+            role=Role.USER,
+            token_hash=token_hash,
+            now=NOW,
+            ttl=timedelta(days=7),
+            invited_by=first.id,
+        )
+
+    async with session_scope(container.session_factory) as db:
+        await SqlInvitationRepository(db).add(invitation("hash-1"))
+    with pytest.raises(InvitationAlreadyPending):
+        async with session_scope(container.session_factory) as db:
+            await SqlInvitationRepository(db).add(invitation("hash-2"))

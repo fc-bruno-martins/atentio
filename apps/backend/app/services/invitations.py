@@ -134,7 +134,10 @@ class InvitationService:
             role=invitation.role,
         )
         invitation.accept(self._clock())
-        await self._users.add(user)
+        try:
+            await self._users.add(user)
+        except EmailInUse as error:
+            raise InvalidInvitation() from error
         await self._invitations.save(invitation)
         return user
 

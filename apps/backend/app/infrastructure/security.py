@@ -63,7 +63,9 @@ class RedisLoginThrottle:
     async def register_failure(self, email: str) -> None:
         try:
             key = self._key(email)
-            if await self._redis.incr(key) == 1:
+            failures = await self._redis.incr(key)
+            # O prazo recomeça ao atingir o limite: o bloqueio dura o período inteiro (FR-003).
+            if failures == 1 or failures >= self._max:
                 await self._redis.expire(key, self._block)
         except (RedisError, OSError):
             log.warning("bloqueio_de_login_indisponivel")
