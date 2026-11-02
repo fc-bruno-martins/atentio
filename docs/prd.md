@@ -26,6 +26,11 @@ via **servidor MCP**, para que o usuário identifique pontos de atenção ou de 
 | Q11 | Infra | Tudo em **Docker** numa **VPS**. Serviços: **frontend, backend, workers, mcp** (+ Evolution API e dependências). |
 | Q12 | Riscos | Usuário **aceita** o risco da conexão não oficial (banimento) e o armazenamento de mensagens de terceiros. |
 | Q13 | Evolution API | Usar a **imagem oficial** via Docker, sem fork. |
+| — | Frontend | **Next.js**, com o Design System do `labs-feattech` (decisão de 2026-11-02, ADR 0006). |
+| Q15 | Empresas | **Várias empresas isoladas (multi-tenant)**: cada empresa tem seus admins e usuários, sem enxergar as outras (decisão de 2026-11-02). |
+| Q16a | Login | **E-mail e senha**, com recuperação de senha (decisão de 2026-11-02). |
+| Q16b | Cadastro | Três perfis: **administrador da plataforma** cria empresas e o primeiro admin de cada uma, sem acesso às conversas; **admin da empresa** convida os próprios usuários; **usuário** (decisão de 2026-11-02). |
+| — | Menus da 002 | Só o que já funciona. **Administrador da plataforma:** Empresas e Status. **Admin da empresa:** Usuários (convites, ativar e desativar). **Todos:** Meu perfil e alteração de senha. Números, Parâmetros e Modelos de IA entram com suas features (decisão de 2026-11-02). |
 
 ## Perguntas em aberto
 
@@ -35,10 +40,6 @@ Escaladas ao usuário em 2026-10-30; nenhuma bloqueia a feature 001 (fundação 
   entrega dados (listar conversas, buscar mensagens) e o próprio Claude analisa; (b) o MCP tem uma
   tool "perguntar" que aciona o **agente interno** (OpenRouter, modelo e prompt configurados pelo
   admin); (c) ambos. A configuração de modelo por usuário (Q8) sugere (b) ou (c).
-- **Q15. Corporativo = uma empresa ou várias?** Uma única organização com vários usuários, ou
-  multi-empresa (vários clientes isolados, cada um com seus admins)?
-- **Q16. Login na plataforma web:** e-mail e senha próprios, ou SSO corporativo (Google Workspace,
-  Microsoft Entra)? Quem cria os usuários: o admin convida, ou há cadastro aberto?
 - **Q17. Domínio e TLS na VPS:** já existe domínio? O conector MCP remoto do Claude exige HTTPS
   público.
 - **Q18. Retenção dos derivados:** transcrições, textos de imagem e memórias/resumos (mem0) também

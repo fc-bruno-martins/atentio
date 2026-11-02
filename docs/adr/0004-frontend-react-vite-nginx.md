@@ -1,6 +1,6 @@
 # 0004 — Frontend React + Vite servido por nginx
 
-- **Status**: aceito (2026-10-30)
+- **Status**: substituído pelo ADR 0006 (2026-11-02)
 - **Contexto**: o usuário trocou o app macOS por front web. A constitution manda o frontend falar
   só com o backend.
 - **Decisão**: SPA React 19 + TypeScript 6.0 + Vite 8; build estático servido por nginx, que faz

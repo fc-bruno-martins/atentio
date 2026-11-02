@@ -1,6 +1,6 @@
 # 0002 — Mediator próprio; handler é o use case
 
-- **Status**: aceito (2026-10-30), revisável se o usuário preferir outra divisão
+- **Status**: substituído pelo ADR 0007 (2026-11-02)
 - **Contexto**: a arquitetura proposta pelo usuário cita "handlers (parecido com mediator),
   usecases, repositories". A relação handler ↔ use case não foi definida (TODO HANDLER_USECASE).
 - **Opções**: (a) handler fino que delega a um use case; (b) o handler é o use case; (c) lib de

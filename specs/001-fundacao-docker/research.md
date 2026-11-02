@@ -56,3 +56,5 @@ Versões conferidas em PyPI, npm e Docker Hub em 2026-10-30.
 - Alembic assíncrono usa `asyncio.run`: em teste async, chamar via `asyncio.to_thread`.
 - `import-linter` exige `include_external_packages = True` para proibir pacotes externos.
 - Frontend: declarar `/// <reference types="vite/client" />` para importar CSS no TypeScript.
+- jsdom 30 depende de undici 8, que não roda no Node 20: fixado em `^29.1`.
+- nginx responde 504 em `/api/` com o backend parado; o frontend trata como falha de consulta.

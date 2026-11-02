@@ -1,6 +1,6 @@
 # 0005 — Monorepo com `apps/` e `apps/shared/`
 
-- **Status**: aceito (2026-11-02), substitui o ADR 0001
+- **Status**: substituído pelo ADR 0007 (2026-11-02)
 - **Contexto**: o usuário definiu `apps/backend`, `apps/frontend`, `apps/mcp` e `apps/workers`, com
   o código comum em `shared`.
 - **Opções**: (a) pacote único, imagem única (ADR 0001); (b) uv workspace com um pacote por app e

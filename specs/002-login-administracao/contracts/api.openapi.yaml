@@ -1,0 +1,68 @@
+openapi: 3.1.0
+info: { title: Judite API v1, version: 0.2.0 }
+security: [{ bearer: [] }]
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties: { code: { type: string }, message: { type: string } }
+    Me:
+      type: object
+      required: [id, name, email, role, company]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { enum: [platform_admin, company_admin, user] }
+        company:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [id, name]
+              properties: { id: { type: string }, name: { type: string } }
+    Session:
+      type: object
+      required: [token, expires_at, user]
+      properties:
+        token: { type: string }
+        expires_at: { type: string, format: date-time }
+        user: { $ref: "#/components/schemas/Me" }
+paths:
+  /health: { get: { security: [], summary: Liveness, responses: { "200": { description: ok } } } }
+  /ready: { get: { security: [], summary: Banco acessível, responses: { "200": { description: ok }, "503": { description: indisponível } } } }
+  /api/v1/auth/login:
+    post:
+      security: []
+      responses:
+        "200": { description: Sessão criada, content: { application/json: { schema: { $ref: "#/components/schemas/Session" } } } }
+        "401": { description: Credenciais inválidas (mensagem genérica) }
+        "429": { description: Bloqueado temporariamente }
+  /api/v1/auth/logout: { post: { responses: { "204": { description: encerrada }, "401": { description: sem sessão } } } }
+  /api/v1/auth/password-recovery: { post: { security: [], responses: { "202": { description: resposta sempre igual } } } }
+  /api/v1/auth/password-reset: { post: { security: [], responses: { "204": { description: senha alterada }, "400": { description: link inválido } } } }
+  /api/v1/me:
+    get: { responses: { "200": { description: conta, content: { application/json: { schema: { $ref: "#/components/schemas/Me" } } } }, "401": { description: sem sessão } } }
+    patch: { responses: { "200": { description: atualizado }, "401": { description: sem sessão }, "422": { description: inválido } } }
+  /api/v1/me/password: { put: { responses: { "204": { description: alterada }, "400": { description: senha atual incorreta }, "401": { description: sem sessão } } } }
+  /api/v1/invitations/lookup:
+    post: { security: [], description: token no corpo para não ir a logs, responses: { "200": { description: dados do convite }, "410": { description: inválido, expirado ou usado } } }
+  /api/v1/invitations/accept:
+    post: { security: [], responses: { "200": { description: conta criada e sessão aberta }, "410": { description: inválido, expirado ou usado } } }
+  /api/v1/companies:
+    get: { description: administrador da plataforma, responses: { "200": { description: lista }, "401": { description: sem sessão }, "403": { description: perfil incorreto } } }
+    post: { description: cria empresa e convite do primeiro admin, responses: { "201": { description: criada }, "403": { description: perfil incorreto }, "409": { description: e-mail já em uso } } }
+  /api/v1/companies/{id}:
+    patch: { description: renomeia, ativa ou desativa, responses: { "200": { description: atualizada }, "403": { description: perfil incorreto }, "404": { description: inexistente } } }
+  /api/v1/users:
+    get: { description: admin da empresa; só a própria empresa, responses: { "200": { description: lista }, "403": { description: perfil incorreto } } }
+  /api/v1/users/{id}:
+    patch: { description: perfil e situação, responses: { "200": { description: atualizado }, "403": { description: perfil incorreto }, "404": { description: inexistente ou de outra empresa }, "409": { description: último admin } } }
+  /api/v1/company-invitations:
+    get: { responses: { "200": { description: convites da empresa }, "403": { description: perfil incorreto } } }
+    post: { responses: { "201": { description: criado }, "403": { description: perfil incorreto }, "409": { description: e-mail já em uso } } }
+  /api/v1/company-invitations/{id}/resend: { post: { responses: { "200": { description: reenviado }, "404": { description: inexistente ou de outra empresa } } } }
+  /api/v1/company-invitations/{id}: { delete: { responses: { "204": { description: cancelado }, "404": { description: inexistente ou de outra empresa } } } }
+  /api/v1/platform/status: { get: { description: administrador da plataforma, responses: { "200": { description: mesmo corpo do contrato da 001 }, "401": { description: sem sessão }, "403": { description: perfil incorreto }, "500": { description: falha inesperada } } } }
