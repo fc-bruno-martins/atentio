@@ -1,0 +1,50 @@
+[importlinter]
+root_package = app
+include_external_packages = True
+
+[importlinter:contract:camadas]
+name = Camadas (Principio I)
+type = layers
+layers =
+    app.main | app.cli
+    app.api
+    app.schemas
+    app.container
+    app.repositories | app.infrastructure
+    app.models
+    app.services
+    app.domain
+    app.core
+
+[importlinter:contract:dominio-puro]
+name = Domain sem frameworks nem core (Principio I)
+type = forbidden
+source_modules =
+    app.domain
+forbidden_modules =
+    app.core
+    fastapi
+    sqlalchemy
+    alembic
+    redis
+    httpx
+    pydantic
+    argon2
+    aiosmtplib
+
+[importlinter:contract:services-puros]
+name = Services so com domain e ports (Principio I)
+type = forbidden
+source_modules =
+    app.services
+forbidden_modules =
+    app.core.database
+    fastapi
+    sqlalchemy
+    alembic
+    redis
+    httpx
+    pydantic
+    argon2
+    aiosmtplib
+allow_indirect_imports = True

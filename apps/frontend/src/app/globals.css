@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/* Use .dark class (set by next-themes) instead of OS media query for dark: variants */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens do DS Featcode (labs-feattalent: frontend/app/globals.css). Paleta do
+   manual de marca: preto institucional #121212, verde assinatura #25E2AF, verdes
+   #00C999/#00A47E, cinzas #6B7277/#ADB1BA. Fundo branco de propósito: a app é clara.
+   --primary é cor de PREENCHIMENTO; verde assinatura sobre branco não tem contraste
+   para texto, então texto/ícone de marca usam --primary-ink. */
+:root {
+  --height-header: 56px;
+  --height-page: calc(100dvh - 56px);
+  --radius: 0.625rem;
+
+  --background: #ffffff;
+  --foreground: #121212;
+  --canvas: #f6f7f8;
+  --card: #ffffff;
+  --card-foreground: #121212;
+  --popover: #ffffff;
+  --popover-foreground: #121212;
+  --primary: #25e2af;
+  --primary-foreground: #121212;
+  --primary-hover: #00c999;
+  --primary-ink: #00734f;
+  --secondary: #f2f3f4;
+  --secondary-foreground: #121212;
+  --muted: #f2f3f4;
+  --muted-foreground: #6b7277;
+  --accent: #e6fbf3;
+  --accent-foreground: #00734f;
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: #ffffff;
+  --danger: oklch(0.58 0.22 27);
+  --success: oklch(0.527 0.154 150.069);
+  --success-foreground: #ffffff;
+  --warning: oklch(0.66 0.157 61);
+  --warning-foreground: #ffffff;
+  --border: #e3e5e8;
+  --input: #e3e5e8;
+  --ring: #25e2af;
+  --chart-1: #25e2af;
+  --chart-2: #00c999;
+  --chart-3: #00a47e;
+  --chart-4: #6b7277;
+  --chart-5: #adb1ba;
+  --sidebar: var(--canvas);
+  --sidebar-foreground: #5c5c5c;
+  --sidebar-primary: oklch(0.93 0 0);
+  --sidebar-primary-foreground: #121212;
+  --sidebar-hover: oklch(0 0 0 / 0.055);
+  --sidebar-border: #e3e5e8;
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #fafafa;
+  --canvas: #0a0a0a;
+  --card: #1a1a1a;
+  --card-foreground: #fafafa;
+  --popover: #1a1a1a;
+  --popover-foreground: #fafafa;
+  --primary: #25e2af;
+  --primary-foreground: #121212;
+  --primary-hover: #00c999;
+  --primary-ink: #25e2af;
+  --secondary: #232323;
+  --secondary-foreground: #fafafa;
+  --muted: #232323;
+  --muted-foreground: #adb1ba;
+  --accent: #1c2e28;
+  --accent-foreground: #25e2af;
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: #121212;
+  --danger: oklch(0.704 0.191 22.216);
+  --success: oklch(0.627 0.194 150.069);
+  --success-foreground: #121212;
+  --warning: oklch(0.82 0.15 79);
+  --warning-foreground: #121212;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: #25e2af;
+  --sidebar: var(--canvas);
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: oklch(0.32 0 0);
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-hover: oklch(0.3 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-ink: var(--primary-ink);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-border: var(--sidebar-border);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-inter-tight);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-inter-tight);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter-tight), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* Brilho verde — só para marcas/destaques pontuais. */
+@keyframes feat-accent-shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+.feat-accent-text {
+  background-image: linear-gradient(120deg, #00a47e, #25e2af, #00a47e, #25e2af, #00a47e);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: feat-accent-shimmer 5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .feat-accent-text {
+    animation: none;
+  }
+}
+.feat-brand-gradient {
+  background-image: linear-gradient(135deg, #121212, #00734f 55%, #25e2af);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Skeleton (loading placeholders) ─────────────────────────────────────────
+ * Um bloco `muted` com um brilho que atravessa da esquerda p/ a direita — lê
+ * como "conteúdo chegando", não como "travou". Usado pelo <Skeleton /> em
+ * components/ui/skeleton.tsx; a animação é do ::after para que o elemento
+ * continue aceitando qualquer background/tamanho via classe utilitária.
+ * Respeita prefers-reduced-motion (fica um bloco estático). */
+@keyframes feat-skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.feat-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--muted) 88%, var(--background));
+  /* Não deixa o placeholder ser selecionado/copiado junto com o conteúdo real. */
+  user-select: none;
+}
+.feat-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--foreground) 7%, transparent),
+    transparent
+  );
+  animation: feat-skeleton-sweep 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .feat-skeleton::after {
+    animation: none;
+  }
+}

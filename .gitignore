@@ -9,3 +9,18 @@
 
 # SO
 .DS_Store
+
+# Python
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.import_linter_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+.next/
+next-env.d.ts

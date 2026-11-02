@@ -1,0 +1,22 @@
+[importlinter]
+root_package = app
+include_external_packages = True
+
+[importlinter:contract:camadas]
+name = Camadas (Principio I)
+type = layers
+layers =
+    app.main
+    app.jobs
+    app.infrastructure
+    app.domain
+    app.core
+
+[importlinter:contract:dominio-puro]
+name = Dominio sem frameworks (Principio I)
+type = forbidden
+source_modules =
+    app.domain
+forbidden_modules =
+    redis
+    pydantic_settings

@@ -1,0 +1,10 @@
+[importlinter]
+root_package = app
+
+[importlinter:contract:camadas]
+name = Camadas (Principio I)
+type = layers
+layers =
+    app.main
+    app.tools
+    app.core
