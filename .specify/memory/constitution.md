@@ -4,8 +4,9 @@
 
 ### I. Arquitetura em Camadas com Domínio no Centro
 
-O backend Python é organizado nas camadas `domain`, `application` (handlers e use cases),
-`infrastructure` (repositories e integrações) e entrypoints (`apps`). Regras:
+O código Python compartilhado fica no pacote `judite_shared` (diretório `apps/shared/`), nas camadas
+`kernel` (utilitários técnicos), `domain`, `application` (handlers) e `infrastructure`
+(repositories e integrações). Os entrypoints ficam em `apps/`. Regras:
 
 - `domain` (entidades, value objects, regras e erros de negócio) MUST NOT importar FastAPI,
   SQLAlchemy, Alembic, clientes HTTP, SDK de MCP ou qualquer framework de infraestrutura.
@@ -14,7 +15,8 @@ O backend Python é organizado nas camadas `domain`, `application` (handlers e u
 - Use cases dependem de ports de repository, nunca de implementações concretas; implementações
   são injetadas na composição de cada app.
 - A direção de dependência MUST ser verificada automaticamente (import-linter) no pipeline local
-  e de CI.
+  (`make check`). O CI é adiado até o repositório ter remote e MUST ser criado até a feature 009
+  (deploy).
 
 Racional: o domínio é compartilhado entre backend, MCP e workers; só é reutilizável se não
 carregar acoplamento com a infraestrutura de nenhum deles.
@@ -34,14 +36,14 @@ testável sem subir HTTP.
 
 ### III. Shared e Domínio Reutilizáveis entre Apps
 
-O sistema é dividido em quatro serviços próprios: **frontend**, **backend**, **workers** e
-**mcp**, mais a Evolution API e as dependências de infraestrutura.
+O sistema é dividido em quatro serviços próprios, em `apps/frontend`, `apps/backend`,
+`apps/workers` e `apps/mcp`, mais a Evolution API e as dependências de infraestrutura.
 
-- `backend`, `workers` e `mcp` são entrypoints do mesmo pacote Python e MAY importar `shared`,
-  `domain`, `application` e `infrastructure`.
+- `backend`, `workers` e `mcp` são pacotes Python próprios (uv workspace) e MAY importar qualquer
+  camada de `judite_shared`; `judite_shared` MUST NOT importar apps.
 - Apps MUST NOT importar uns aos outros; o que for comum MUST ser promovido para uma camada
   compartilhada.
-- `shared` contém apenas utilitários técnicos transversais (config, logging, erros base,
+- A camada `kernel` contém apenas utilitários técnicos transversais (config, logging, erros base,
   mediator) e MUST NOT conter regra de negócio.
 - O frontend fala apenas com o backend, via HTTP; MUST NOT acessar banco, Evolution API ou MCP.
 
@@ -82,7 +84,8 @@ Racional: schema reproduzível em qualquer ambiente e domínio isolado da persis
 - Integrações externas (Evolution API, OpenAI, OpenRouter) MUST ser testadas com dublês nos
   testes automatizados; chamadas reais só em testes manuais/smoke explícitos.
 - Os testes de cada história MUST estar nas próprias tarefas da história, não numa fase final.
-- TODO(TEST_POLICY): TDD obrigatório? cobertura mínima? (pendente do usuário)
+- TDD é recomendado, não obrigatório. Não há cobertura mínima; a suficiência dos testes é avaliada
+  na revisão de cada PR.
 
 Racional: a arquitetura em camadas só se paga se cada camada for verificável isoladamente.
 
@@ -124,4 +127,4 @@ Racional: a arquitetura em camadas só se paga se cada camada for verificável i
 - O Revisor de PR e o Tech Lead verificam a conformidade em todo PR.
 - Orientação operacional do dia a dia fica em `CLAUDE.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-10-30
+**Version**: 1.2.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-11-02

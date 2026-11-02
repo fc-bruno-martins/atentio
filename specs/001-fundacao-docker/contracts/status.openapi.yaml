@@ -20,7 +20,7 @@ paths:
     get:
       summary: Estado consolidado dos componentes da plataforma
       description: >
-        Sempre responde 200 quando o backend está no ar, mesmo com componentes indisponíveis.
+        Responde 200 mesmo com componentes indisponíveis; 500 só em falha inesperada do handler.
         O frontend trata erro de rede/5xx como "não foi possível consultar o estado".
       responses:
         "200":
@@ -39,6 +39,15 @@ paths:
                   - { component: evolution_api, available: true, detail: null }
                   - { component: workers, available: false, detail: "sem heartbeat recente" }
                   - { component: mcp, available: true, detail: null }
+        "500":
+          description: Falha inesperada do handler; o corpo não traz detalhes internos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail: { type: string, const: Internal Server Error }
 components:
   schemas:
     PlatformStatus:

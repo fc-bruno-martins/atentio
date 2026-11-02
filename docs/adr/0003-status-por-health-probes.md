@@ -5,6 +5,6 @@
   porta HTTP.
 - **Decisão**: port `HealthProbe` em `application`; implementações em `infrastructure`
   (Postgres, Redis, HTTP, heartbeat). O handler `GetPlatformStatus` executa todos em paralelo com
-  timeout de 2 s. Workers gravam heartbeat no Redis com TTL de 30 s.
+  timeout de 2 s. Workers gravam heartbeat no Redis com TTL de 20 s.
 - **Consequências**: adicionar componente = novo probe registrado na composição. O status depende
   do Redis para enxergar os workers: com o Redis fora, os workers também aparecem indisponíveis.

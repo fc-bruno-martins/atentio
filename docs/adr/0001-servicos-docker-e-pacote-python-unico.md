@@ -1,6 +1,6 @@
 # 0001 — Serviços em Docker Compose e pacote Python único
 
-- **Status**: aceito (2026-10-30)
+- **Status**: substituído pelo ADR 0005 (2026-10-30)
 - **Contexto**: o usuário decidiu rodar tudo em Docker numa VPS, dividido em frontend, backend,
   workers e mcp, com Evolution API pela imagem oficial. A constitution permite que os apps
   compartilhem shared, domain e application.

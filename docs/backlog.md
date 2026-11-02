@@ -12,4 +12,4 @@ Ordem por dependência e valor. Cada item vira uma feature `specs/NNN-nome/`.
 | 006 | **Mídia em texto** — transcrição de áudio e leitura de imagem via OpenAI, com descarte do original | Agente entende mídia | 004 | Q18 |
 | 007 | **MCP remoto autenticado** — conector para o Claude (Desktop, celular, web) com autenticação na plataforma e tools de leitura dos próprios dados | Perguntar ao Claude | 002, 004 | Q14, Q17 |
 | 008 | **Agente interno** — OpenRouter com modelo, effort e prompt por usuário (admin); memória/resumo (mem0 ou similar) | Respostas agênticas | 007 | Q14 |
-| 009 | **Deploy na VPS** — proxy reverso com TLS, domínio, backups | Produção | 001 | Q17 |
+| 009 | **Deploy na VPS** — proxy reverso com TLS, domínio, backups e CI (obrigatório pela constitution; requer remote) | Produção | 001 | Q17 |

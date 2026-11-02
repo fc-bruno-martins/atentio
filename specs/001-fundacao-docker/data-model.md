@@ -26,4 +26,4 @@ Sem tabelas de negócio. A migração inicial (`0001_baseline`) só estabelece a
 ## Chaves Redis
 | Chave | Valor | TTL |
 |---|---|---|
-| `judite:workers:heartbeat` | ISO-8601 do último sinal | `WORKER_HEARTBEAT_TTL_SECONDS` (30 s) |
+| `judite:workers:heartbeat` | ISO-8601 do último sinal | `WORKER_HEARTBEAT_TTL_SECONDS` (20 s) |

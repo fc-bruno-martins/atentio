@@ -12,12 +12,11 @@ Versões conferidas em PyPI, npm e Docker Hub em 2026-10-30.
   Prisma na subida e tem `wget` para o healthcheck.
 - **Alternatives**: `2.4.0-rc2` (instável); `atendai/evolution-api` (namespace antigo).
 
-## R2. Pacote Python único × um pacote por app
-- **Decision**: um pacote `judite`, uma imagem, quatro comandos (api, workers, mcp, migrate).
-- **Rationale**: a constitution permite que os apps compartilhem shared, domain e application;
-  com um pacote só, isso é import direto, sem publicar libs internas. O isolamento entre apps é
-  garantido por import-linter (contrato `independence`).
-- **Alternatives**: uv workspace com 4 pacotes (mais build e versionamento sem ganho hoje).
+## R2. Organização dos pacotes Python
+- **Decision**: uv workspace com `judite_shared` e um pacote por app (ADR 0005).
+- **Rationale**: decisão do usuário por `apps/`, com a biblioteca em `apps/shared/`. O workspace mantém um único lock e
+  imports diretos, sem publicar libs internas. O isolamento é verificado por import-linter.
+- **Alternatives**: pacote único (ADR 0001, substituído).
 
 ## R3. SDK MCP
 - **Decision**: `mcp==2.3.*`, `MCPServer` com `streamable_http_app()` e `custom_route("/health")`.
@@ -46,3 +45,14 @@ Versões conferidas em PyPI, npm e Docker Hub em 2026-10-30.
   do container verifica se o arquivo tem menos de 30 s.
 - **Rationale**: o worker não tem porta HTTP; o Compose precisa de um sinal local, independente do
   Redis (o status da plataforma usa o heartbeat do Redis).
+
+## R8. Varredura de segredos
+- **Decision**: `zricethezav/gitleaks:v8.30.1` via container no `make check` (SC-005).
+- **Rationale**: não exige instalação local e fixa a versão.
+
+## R9. Aprendizados da construção revertida
+- Alembic: definir `path_separator = os` no `alembic.ini` (sem isso há DeprecationWarning).
+- Testcontainers: importar de `testcontainers.community.postgres` e `.redis`.
+- Alembic assíncrono usa `asyncio.run`: em teste async, chamar via `asyncio.to_thread`.
+- `import-linter` exige `include_external_packages = True` para proibir pacotes externos.
+- Frontend: declarar `/// <reference types="vite/client" />` para importar CSS no TypeScript.
