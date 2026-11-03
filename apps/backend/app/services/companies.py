@@ -9,7 +9,13 @@ from app.domain.actor import Actor
 from app.domain.company import Company
 from app.domain.errors import NotFound
 from app.domain.invitation import Invitation
-from app.domain.ports import CompanyRepository, SessionRepository
+from app.domain.number import DisconnectReason
+from app.domain.ports import (
+    AttemptRepository,
+    CompanyRepository,
+    NumberRepository,
+    SessionRepository,
+)
 from app.domain.user import Role
 from app.services.invitations import InvitationService
 
@@ -27,7 +33,11 @@ class CompanyService:
         sessions: SessionRepository,
         invitations: InvitationService,
         clock: Callable[[], datetime],
+        numbers: NumberRepository,
+        attempts: AttemptRepository,
     ) -> None:
+        self._numbers = numbers
+        self._attempts = attempts
         self._companies = companies
         self._sessions = sessions
         self._invitations = invitations
@@ -59,6 +69,11 @@ class CompanyService:
             company.activate()
         if is_active is False:
             company.deactivate()
-            await self._sessions.revoke_for_company(company.id, self._clock())
+            now = self._clock()
+            await self._sessions.revoke_for_company(company.id, now)
+            await self._numbers.disconnect_for_company(
+                company.id, DisconnectReason.COMPANY_DEACTIVATED, now
+            )
+            await self._attempts.cancel_pending_for_company(company.id)
         await self._companies.save(company)
         return company

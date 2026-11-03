@@ -11,8 +11,17 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.core.config import Settings
 from app.core.database import create_engine, create_session_factory
 from app.domain.platform_status import Component
-from app.domain.ports import EmailSender, LoginThrottle, PasswordHasher, TokenGenerator
+from app.domain.ports import (
+    AnalysisModel,
+    EmailSender,
+    LoginThrottle,
+    PasswordHasher,
+    TokenGenerator,
+    WhatsAppGateway,
+)
 from app.infrastructure.email import SmtpEmailSender
+from app.infrastructure.evolution import EvolutionGateway
+from app.infrastructure.openrouter import OpenRouterModel
 from app.infrastructure.probes.database import DatabaseProbe
 from app.infrastructure.probes.http import HttpProbe
 from app.infrastructure.probes.redis import RedisProbe, WorkerHeartbeatProbe
@@ -36,6 +45,10 @@ class Container:
     redis: "Redis"
     http: httpx.AsyncClient
     evolution_http: httpx.AsyncClient
+    whatsapp_http: httpx.AsyncClient
+    whatsapp: WhatsAppGateway
+    analysis_http: httpx.AsyncClient
+    analysis_model: AnalysisModel
     database_probe: DatabaseProbe
     status_service: PlatformStatusService
     hasher: PasswordHasher
@@ -48,6 +61,8 @@ class Container:
     async def close(self) -> None:
         await self.http.aclose()
         await self.evolution_http.aclose()
+        await self.whatsapp_http.aclose()
+        await self.analysis_http.aclose()
         await self.redis.aclose()
         await self.engine.dispose()
 
@@ -61,6 +76,13 @@ def build_container(settings: Settings) -> Container:
     evolution_http = httpx.AsyncClient(
         timeout=timeout, headers={"apikey": settings.evolution_api_key.get_secret_value()}
     )
+    # Criar uma instância demora mais que um teste de saúde.
+    whatsapp_http = httpx.AsyncClient(
+        timeout=settings.evolution_timeout_seconds,
+        headers={"apikey": settings.evolution_api_key.get_secret_value()},
+    )
+    analysis_http = httpx.AsyncClient(timeout=settings.analysis_timeout_seconds)
+    openrouter_key = settings.openrouter_api_key
     database = DatabaseProbe(engine)
     status_service = PlatformStatusService(
         probes=[
@@ -81,6 +103,21 @@ def build_container(settings: Settings) -> Container:
         redis=redis,
         http=http,
         evolution_http=evolution_http,
+        whatsapp_http=whatsapp_http,
+        whatsapp=EvolutionGateway(
+            whatsapp_http,
+            settings.evolution_api_url,
+            settings.evolution_webhook_url,
+            settings.evolution_webhook_secret.get_secret_value(),
+        ),
+        analysis_http=analysis_http,
+        analysis_model=OpenRouterModel(
+            analysis_http,
+            settings.openrouter_url,
+            openrouter_key.get_secret_value() if openrouter_key else None,
+            settings.openrouter_models_url,
+            settings.openrouter_models_ttl_seconds,
+        ),
         database_probe=database,
         status_service=status_service,
         hasher=hasher,

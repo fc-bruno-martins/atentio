@@ -17,6 +17,7 @@ from app.repositories.identity import (
     SqlSessionRepository,
     SqlUserRepository,
 )
+from app.repositories.numbers import SqlAttemptRepository, SqlNumberRepository
 from app.services.users import UserAdminService
 
 pytestmark = pytest.mark.integration
@@ -91,6 +92,8 @@ async def test_dois_admins_nao_se_desativam_ao_mesmo_tempo(container: Container)
                 SqlCompanyRepository(db),
                 SqlSessionRepository(db),
                 container.clock,
+                SqlNumberRepository(db),
+                SqlAttemptRepository(db),
             )
             actor = Actor(actor_user.id, target.id, Role.COMPANY_ADMIN, company.id)
             await service.update(actor, target.id, is_active=False)

@@ -20,9 +20,10 @@ from app.core.database import session_scope
 from app.domain.user import Role, User
 from app.main import create_app
 from app.repositories.identity import SqlUserRepository
-from tests.fakes import FakeEmail
+from tests.fakes import FakeAnalysisModel, FakeEmail, FakeWhatsApp
 
 ALEMBIC_INI = Path(__file__).parents[1] / "alembic.ini"
+WEBHOOK_SECRET = "segredo-do-webhook"
 PASSWORD = "senha-muito-boa"
 
 
@@ -59,6 +60,10 @@ async def container(postgres_url: str, redis_url: str) -> AsyncIterator[Containe
         redis_url=redis_url,
         evolution_api_url="http://evolution.invalid",
         evolution_api_key="chave",  # type: ignore[arg-type]
+        evolution_webhook_secret=WEBHOOK_SECRET,  # type: ignore[arg-type]
+        evolution_webhook_url="http://backend.invalid/hook",
+        internal_api_token="token-interno",  # type: ignore[arg-type]
+        openrouter_default_model="modelo/padrao",
         mcp_url="http://mcp.invalid",
         public_app_url="http://app.test",
         smtp_host="smtp.invalid",
@@ -66,9 +71,16 @@ async def container(postgres_url: str, redis_url: str) -> AsyncIterator[Containe
     )
     built = build_container(settings)
     built.email = FakeEmail()
+    built.whatsapp = FakeWhatsApp()
+    built.analysis_model = FakeAnalysisModel()
     async with built.engine.begin() as conn:
         await conn.execute(
-            text("TRUNCATE password_resets, sessions, invitations, users, companies CASCADE")
+            text(
+                "TRUNCATE api_tokens, analyses, analysis_prompts, user_ai_settings, "
+                "company_settings, "
+                "messages, conversations, connection_attempts, whatsapp_numbers, "
+                "password_resets, sessions, invitations, users, companies CASCADE"
+            )
         )
     await built.redis.flushdb()
     yield built
@@ -101,6 +113,8 @@ class Api:
         self.client = client
         self.container = container
         self.email: FakeEmail = container.email  # type: ignore[assignment]
+        self.whatsapp: FakeWhatsApp = container.whatsapp  # type: ignore[assignment]
+        self.model: FakeAnalysisModel = container.analysis_model  # type: ignore[assignment]
 
     async def login(self, email: str, password: str = PASSWORD) -> Person:
         response = await self.client.post(

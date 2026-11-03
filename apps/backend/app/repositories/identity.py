@@ -134,6 +134,11 @@ class SqlUserRepository:
                 raise EmailInUse() from error
             raise
 
+    async def lock(self, user_id: UUID) -> None:
+        await self._db.execute(
+            select(UserModel.id).where(UserModel.id == user_id).with_for_update()
+        )
+
     async def get(self, user_id: UUID) -> User | None:
         model = await self._db.get(UserModel, user_id, populate_existing=True)
         return _user(model) if model else None

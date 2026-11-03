@@ -27,7 +27,7 @@ async def test_upgrade_downgrade_upgrade(postgres_url: str) -> None:
     assert await _version(postgres_url) is None
 
     await asyncio.to_thread(command.upgrade, config, "head")
-    assert await _version(postgres_url) == "0002"
+    assert await _version(postgres_url) == "0007"
 
 
 async def test_modelos_e_migracoes_estao_sincronizados(postgres_url: str) -> None:

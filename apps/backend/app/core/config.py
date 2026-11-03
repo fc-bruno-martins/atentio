@@ -31,6 +31,9 @@ class Settings(DatabaseSettings):
     redis_url: str
     evolution_api_url: str
     evolution_api_key: SecretStr
+    evolution_webhook_secret: SecretStr
+    evolution_webhook_url: str
+    internal_api_token: SecretStr
     mcp_url: str
     public_app_url: str
     smtp_host: str
@@ -45,6 +48,15 @@ class Settings(DatabaseSettings):
     password_reset_ttl_minutes: int = Field(default=60, gt=0)
     login_max_failures: int = Field(default=5, gt=0)
     login_block_minutes: int = Field(default=15, gt=0)
+    evolution_timeout_seconds: float = Field(default=15.0, gt=0)
+    connection_attempt_ttl_minutes: int = Field(default=5, gt=0)
+    message_retention_days: int = Field(default=7, gt=0)
+    openrouter_api_key: SecretStr | None = None
+    openrouter_default_model: str | None = None
+    openrouter_url: str = "https://openrouter.ai/api/v1/chat/completions"
+    openrouter_models_url: str = "https://openrouter.ai/api/v1/models"
+    openrouter_models_ttl_seconds: int = Field(default=600, gt=0)
+    analysis_timeout_seconds: float = Field(default=120.0, gt=0)
 
 
 def load_settings[S: DatabaseSettings](cls: type[S]) -> S:

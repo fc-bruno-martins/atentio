@@ -14,16 +14,19 @@ from app.domain.errors import (
     NotFound,
 )
 from app.domain.invitation import InvitationStatus
+from app.domain.number import AttemptStatus, ConnectionAttempt, DisconnectReason, WhatsAppNumber
 from app.domain.session import AuthSession
 from app.domain.user import Role, User
 from app.services.companies import CompanyService
 from app.services.invitations import InvitationService
 from app.services.users import UserAdminService
 from tests.fakes import (
+    FakeAttempts,
     FakeCompanies,
     FakeEmail,
     FakeHasher,
     FakeInvitations,
+    FakeNumbers,
     FakeSessions,
     FakeTokens,
     FakeUsers,
@@ -42,6 +45,8 @@ class World:
         self.sessions = FakeSessions(self.users)
         self.email = FakeEmail()
         self.tokens = FakeTokens()
+        self.numbers = FakeNumbers()
+        self.attempts = FakeAttempts()
         self.company = Company.create("Acme")
         self.companies.items[self.company.id] = self.company
         self.invites = InvitationService(
@@ -56,10 +61,15 @@ class World:
             "http://app/",
         )
         self.admin_service = UserAdminService(
-            self.users, self.companies, self.sessions, lambda: self.now
+            self.users, self.companies, self.sessions, lambda: self.now, self.numbers, self.attempts
         )
         self.company_service = CompanyService(
-            self.companies, self.sessions, self.invites, lambda: self.now
+            self.companies,
+            self.sessions,
+            self.invites,
+            lambda: self.now,
+            self.numbers,
+            self.attempts,
         )
 
     def member(self, role: Role = Role.COMPANY_ADMIN, company: Company | None = None) -> User:
@@ -281,3 +291,62 @@ async def test_aceite_simultaneo_vira_convite_invalido(monkeypatch: pytest.Monke
     monkeypatch.setattr(world.users, "add", email_taken)
     with pytest.raises(InvalidInvitation):
         await world.invites.accept(world.token, "Nova Pessoa", PASSWORD)
+
+
+def _number(world: World, user: User) -> WhatsAppNumber:
+    number = WhatsAppNumber.connect(
+        company_id=world.company.id,
+        owner_user_id=user.id,
+        phone="5511999999999",
+        instance_name="i",
+        now=world.now,
+    )
+    world.numbers.items[number.id] = number
+    return number
+
+
+def _attempt(world: World, user: User) -> ConnectionAttempt:
+    attempt = ConnectionAttempt.start(
+        company_id=world.company.id, user_id=user.id, now=world.now, ttl=timedelta(minutes=5)
+    )
+    world.attempts.items[attempt.id] = attempt
+    return attempt
+
+
+async def test_desativar_conta_desconecta_numeros_e_cancela_tentativas() -> None:
+    world = World()
+    admin = world.member()
+    user = world.member(Role.USER)
+    number, attempt = _number(world, user), _attempt(world, user)
+    actor = Actor(admin.id, uuid4(), Role.COMPANY_ADMIN, world.company.id)
+
+    await world.admin_service.update(actor, user.id, is_active=False)
+
+    assert not number.is_connected
+    assert number.disconnect_reason is DisconnectReason.ACCOUNT_DEACTIVATED
+    assert number.disconnected_by == admin.id
+    assert attempt.status is AttemptStatus.CANCELLED
+
+
+async def test_reativar_conta_nao_reconecta() -> None:
+    world = World()
+    admin = world.member()
+    user = world.member(Role.USER)
+    number = _number(world, user)
+    actor = Actor(admin.id, uuid4(), Role.COMPANY_ADMIN, world.company.id)
+
+    await world.admin_service.update(actor, user.id, is_active=False)
+    await world.admin_service.update(actor, user.id, is_active=True)
+
+    assert not number.is_connected
+
+
+async def test_desativar_empresa_desconecta_numeros() -> None:
+    world = World()
+    user = world.member(Role.USER)
+    number, attempt = _number(world, user), _attempt(world, user)
+
+    await world.company_service.update(world.company.id, is_active=False)
+
+    assert number.disconnect_reason is DisconnectReason.COMPANY_DEACTIVATED
+    assert attempt.status is AttemptStatus.CANCELLED

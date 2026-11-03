@@ -1,10 +1,15 @@
 """Conversões do domínio para os contratos HTTP."""
 
+from datetime import datetime
+
 from app.domain.company import Company
 from app.domain.invitation import Invitation
+from app.domain.number import WhatsAppNumber
 from app.domain.user import User
 from app.schemas.identity import CompanyOut, CompanyRef, InvitationOut, Me, UserOut
+from app.schemas.numbers import AttemptOut, CompanyNumberOut, NumberOut
 from app.services.account import Profile
+from app.services.numbers import AttemptView, CompanyNumber
 
 
 def me_out(profile: Profile) -> Me:
@@ -39,4 +44,34 @@ def invitation_out(invitation: Invitation) -> InvitationOut:
         role=invitation.role.value,
         expires_at=invitation.expires_at,
         email_failed=invitation.last_send_failed_at is not None,
+    )
+
+
+def number_out(number: WhatsAppNumber, now: datetime) -> NumberOut:
+    return NumberOut(
+        id=number.id,
+        phone=number.phone,
+        status=number.status.value,
+        status_changed_at=number.status_changed_at,
+        confirmed=number.is_confirmed(now),
+        disconnect_reason=number.disconnect_reason.value if number.disconnect_reason else None,
+    )
+
+
+def company_number_out(item: CompanyNumber, now: datetime) -> CompanyNumberOut:
+    return CompanyNumberOut(
+        **number_out(item.number, now).model_dump(),
+        owner_id=item.owner.id,
+        owner_name=item.owner.name,
+    )
+
+
+def attempt_out(view: AttemptView) -> AttemptOut:
+    attempt = view.attempt
+    return AttemptOut(
+        id=attempt.id,
+        status=attempt.status.value,
+        qr_code=view.qr_code,
+        failure=attempt.failure.value if attempt.failure else None,
+        expires_at=attempt.expires_at,
     )

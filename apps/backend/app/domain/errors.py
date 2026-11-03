@@ -65,6 +65,56 @@ class WrongPassword(DomainError):
     message = "A senha atual está incorreta."
 
 
+class NumberLimitReached(DomainError):
+    code = "number_limit"
+    message = "Você já tem 2 números conectados. Desconecte um para conectar outro."
+
+
+class WhatsAppUnavailable(DomainError):
+    code = "whatsapp_unavailable"
+    message = "O serviço de WhatsApp está indisponível no momento. Tente novamente."
+
+
+class NumberAlreadyConnected(DomainError):
+    code = "number_in_use"
+    message = "Este número já está conectado a outra conta."
+
+
+class AttemptClosed(DomainError):
+    code = "attempt_closed"
+    message = "Esta tentativa de conexão já terminou."
+
+
+class InvalidPeriod(DomainError):
+    code = "invalid_period"
+    message = "A data inicial precisa ser anterior à final."
+
+
+class AnalysisNotConfigured(DomainError):
+    code = "analysis_not_configured"
+    message = "As análises ainda não foram configuradas nesta plataforma."
+
+
+class NoModelSelected(DomainError):
+    code = "no_model"
+    message = "Escolha um modelo para analisar."
+
+
+class ModelNotAvailable(DomainError):
+    code = "model_not_available"
+    message = "Este modelo não está disponível. Escolha outro."
+
+
+class NoMessagesToAnalyze(DomainError):
+    code = "no_messages"
+    message = "Não há mensagens no período ou na seleção."
+
+
+class AnalysisModelFailed(DomainError):
+    code = "analysis_failed"
+    message = "O provedor de análise não respondeu. Tente novamente."
+
+
 class InvalidValue(DomainError):
     code = "invalid_value"
     message = "Valor inválido."

@@ -20,6 +20,16 @@ STATUS: dict[type[errors.DomainError], int] = {
     errors.InvalidInvitation: 410,
     errors.InvalidResetLink: 400,
     errors.WrongPassword: 400,
+    errors.NumberLimitReached: 409,
+    errors.NumberAlreadyConnected: 409,
+    errors.AttemptClosed: 409,
+    errors.WhatsAppUnavailable: 503,
+    errors.InvalidPeriod: 422,
+    errors.AnalysisNotConfigured: 503,
+    errors.AnalysisModelFailed: 502,
+    errors.NoMessagesToAnalyze: 422,
+    errors.NoModelSelected: 422,
+    errors.ModelNotAvailable: 422,
     errors.InvalidValue: 422,
 }
 

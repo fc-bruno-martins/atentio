@@ -6,7 +6,14 @@ from uuid import UUID
 
 from app.domain.actor import Actor
 from app.domain.errors import LastAdmin, NotFound
-from app.domain.ports import CompanyRepository, SessionRepository, UserRepository
+from app.domain.number import DisconnectReason
+from app.domain.ports import (
+    AttemptRepository,
+    CompanyRepository,
+    NumberRepository,
+    SessionRepository,
+    UserRepository,
+)
 from app.domain.user import Role, User
 
 
@@ -17,7 +24,11 @@ class UserAdminService:
         companies: CompanyRepository,
         sessions: SessionRepository,
         clock: Callable[[], datetime],
+        numbers: NumberRepository,
+        attempts: AttemptRepository,
     ) -> None:
+        self._numbers = numbers
+        self._attempts = attempts
         self._users = users
         self._companies = companies
         self._sessions = sessions
@@ -50,6 +61,11 @@ class UserAdminService:
         if is_active is not None:
             user.is_active = is_active
             if not is_active:
-                await self._sessions.revoke_for_user(user.id, self._clock())
+                now = self._clock()
+                await self._sessions.revoke_for_user(user.id, now)
+                await self._numbers.disconnect_for_user(
+                    user.id, DisconnectReason.ACCOUNT_DEACTIVATED, now, actor.user_id
+                )
+                await self._attempts.cancel_pending_for_user(user.id)
         await self._users.save(user)
         return user
