@@ -65,6 +65,9 @@ export async function forwardToBackend(request: Request): Promise<Response> {
     status: upstream.status,
     headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' },
   })
+  // O QR code dá acesso à conta de WhatsApp: a resposta não pode ficar em cache.
+  const cacheControl = upstream.headers.get('cache-control')
+  if (cacheControl) response.headers.set('cache-control', cacheControl)
   if (pathname === LOGOUT_PATH || (token && upstream.status === 401)) {
     response.headers.append('set-cookie', cookieHeader('', 0))
   } else if (token && upstream.ok) {

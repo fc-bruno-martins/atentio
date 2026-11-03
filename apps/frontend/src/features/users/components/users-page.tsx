@@ -20,6 +20,7 @@ import {
   type CompanyRole,
   type CompanyUser,
 } from '../services/users'
+import { AiSettingsDialog } from './ai-settings-dialog'
 
 const ROLE_LABELS: Record<CompanyRole, string> = { company_admin: 'Admin', user: 'Usuário' }
 
@@ -71,6 +72,7 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
 export function UsersPage() {
   const queryClient = useQueryClient()
   const [inviting, setInviting] = useState(false)
+  const [configuring, setConfiguring] = useState<CompanyUser | null>(null)
   const users = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
   const invitations = useQuery({ queryKey: ['invitations'], queryFn: fetchInvitations })
   const refresh = () =>
@@ -133,6 +135,9 @@ export function UsersPage() {
                 >
                   {user.is_active ? 'Desativar' : 'Ativar'}
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => setConfiguring(user)}>
+                  Análises
+                </Button>
               </li>
             ))}
           </ul>
@@ -160,6 +165,9 @@ export function UsersPage() {
         </section>
       )}
       {inviting && <InviteDialog onClose={() => setInviting(false)} />}
+      {configuring && (
+        <AiSettingsDialog user={configuring} onClose={() => setConfiguring(null)} />
+      )}
     </div>
   )
 }

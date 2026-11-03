@@ -16,7 +16,7 @@ type Route = { status?: number; body?: unknown }
 export function mockApi(routes: Record<string, Route>) {
   const calls: { key: string; body: unknown }[] = []
   const fn = vi.fn(async (path: string, init?: RequestInit) => {
-    const key = `${init?.method ?? 'GET'} ${path}`
+    const key = `${init?.method ?? 'GET'} ${path.split('?')[0]}`
     const route = routes[key]
     calls.push({ key, body: init?.body ? JSON.parse(init.body as string) : undefined })
     if (!route) return Response.json({ message: `rota não mockada: ${key}` }, { status: 500 })

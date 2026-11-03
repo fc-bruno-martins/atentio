@@ -37,3 +37,15 @@ export const resendInvitation = (id: string) =>
 
 export const cancelInvitation = (id: string) =>
   apiSend<void>(`/api/v1/company-invitations/${id}`, 'DELETE')
+
+export interface AiSettings {
+  model: string | null
+  temperature: number | null
+  extra_prompt: string | null
+}
+
+export const fetchAiSettings = (id: string) =>
+  apiFetch<AiSettings>(`/api/v1/users/${id}/ai-settings`)
+
+export const saveAiSettings = (id: string, settings: AiSettings) =>
+  apiSend<AiSettings>(`/api/v1/users/${id}/ai-settings`, 'PUT', settings)

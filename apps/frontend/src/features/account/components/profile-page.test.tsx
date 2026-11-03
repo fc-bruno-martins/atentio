@@ -13,6 +13,7 @@ afterEach(() => {
 it('altera o nome', async () => {
   const calls = mockApi({
     'GET /api/v1/me': { body: me },
+    'GET /api/v1/mcp-tokens': { body: [] },
     'PATCH /api/v1/me': { body: { ...me, name: 'Ana Maria' } },
   })
   renderWithQuery(<ProfilePage />)
@@ -29,6 +30,7 @@ it('altera o nome', async () => {
 it('altera a senha e mostra erro de senha atual incorreta', async () => {
   mockApi({
     'GET /api/v1/me': { body: me },
+    'GET /api/v1/mcp-tokens': { body: [] },
     'PUT /api/v1/me/password': { status: 400, body: { message: 'A senha atual está incorreta.' } },
   })
   renderWithQuery(<ProfilePage />)

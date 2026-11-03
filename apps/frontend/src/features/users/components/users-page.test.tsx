@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import { mockApi, renderWithQuery } from '@/lib/test-utils'
@@ -88,4 +88,22 @@ it('convida, reenvia e cancela', async () => {
       role: 'user',
     })
   })
+})
+
+it('o admin configura modelo e prompt adicional por usuário', async () => {
+  const route = '/api/v1/users/1/ai-settings'
+  const calls = mockApi({
+    'GET /api/v1/users': { body: [ana] },
+    'GET /api/v1/company-invitations': { body: [] },
+    [`GET ${route}`]: { body: { model: null, temperature: null, extra_prompt: null } },
+    'GET /api/v1/analysis-models': { body: { models: [], default_model: null } },
+    [`PUT ${route}`]: { body: {} },
+  })
+  renderWithQuery(<UsersPage />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Análises' }))
+  await userEvent.type(await screen.findByLabelText(/Modelo/), 'modelo/x')
+  await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+  await waitFor(() =>
+    expect(calls.find((c) => c.key === `PUT ${route}`)?.body).toMatchObject({ model: 'modelo/x' }),
+  )
 })

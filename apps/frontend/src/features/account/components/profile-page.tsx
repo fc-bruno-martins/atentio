@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card'
 import { Field, FormError } from '@/components/ui/field'
 import { useCurrentUser } from '@/features/shared'
 import { changePassword, updateName } from '../services/account'
+import { McpTokens } from './mcp-tokens'
 
 export function ProfilePage() {
   const queryClient = useQueryClient()
@@ -76,6 +77,7 @@ export function ProfilePage() {
           </Button>
         </form>
       </Card>
+      {user.role !== 'platform_admin' && <McpTokens />}
     </div>
   )
 }

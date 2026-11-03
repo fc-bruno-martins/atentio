@@ -95,6 +95,12 @@ describe('forwardToBackend', () => {
     vi.unstubAllEnvs()
   })
 
+  it('preserva o cache-control do backend', async () => {
+    mockBackend(Response.json({}, { headers: { 'cache-control': 'no-store' } }))
+    const response = await forwardToBackend(request('/api/v1/numbers/connections/1'))
+    expect(response.headers.get('cache-control')).toBe('no-store')
+  })
+
   it('responde 503 com o backend fora', async () => {
     mockBackend(new Error('recusado'))
 
