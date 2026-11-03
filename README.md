@@ -8,7 +8,7 @@ servidor MCP. Visão e decisões: `docs/prd.md`. Backlog: `docs/backlog.md`.
 Pré-requisito: Docker com Compose v2.
 
 ```bash
-cp .env.example .env   # preencha POSTGRES_PASSWORD e EVOLUTION_API_KEY
+cp .env.example .env   # preencha as variáveis OBRIGATÓRIAS
 make up                # constrói e sobe tudo, aguardando os serviços ficarem saudáveis
 make create-platform-admin EMAIL=voce@empresa.com NAME="Seu Nome"   # pede a senha
 ```

@@ -54,6 +54,9 @@ src/
 Fora da feature, importe só de `@/features/<feature>`. Dentro dela, use imports relativos.
 `components/` e `lib/` não importam `features/`. Testes ficam ao lado do código.
 
+**Entre serviços:** rotas em `/api/v1/internal` exigem segredo próprio, e a Evolution API só usa rotas de
+instância. Enviar, reagir ou marcar como lida são proibidos (ADR 0009).
+
 **Isolamento:** todo dado de negócio pertence a uma empresa, e cada consulta filtra por ela. Tentativa
 de alcançar outra empresa responde como registro inexistente.
 

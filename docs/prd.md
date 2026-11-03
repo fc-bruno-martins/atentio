@@ -32,14 +32,13 @@ via **servidor MCP**, para que o usuário identifique pontos de atenção ou de 
 | Q16b | Cadastro | Três perfis: **administrador da plataforma** cria empresas e o primeiro admin de cada uma, sem acesso às conversas; **admin da empresa** convida os próprios usuários; **usuário** (decisão de 2026-11-02). |
 | — | Menus da 002 | Só o que já funciona. **Administrador da plataforma:** Empresas e Status. **Admin da empresa:** Usuários (convites, ativar e desativar). **Todos:** Meu perfil e alteração de senha. Números, Parâmetros e Modelos de IA entram com suas features (decisão de 2026-11-02). |
 
+| Q14 | Agente | **Ambos**: a plataforma analisa com o agente interno e o MCP entrega dados ao Claude (opção C, 2026-11-02). |
+| — | Conversas | Cada pessoa vê os próprios grupos e conversas na plataforma, com filtro por data, e analisa períodos ou mensagens selecionadas (2026-11-02). |
+
 ## Perguntas em aberto
 
 Escaladas ao usuário em 2026-10-30; nenhuma bloqueia a feature 001 (fundação em Docker).
 
-- **Q14. Agente interno × Claude:** quando o Claude pergunta via MCP, quem raciocina? (a) o MCP só
-  entrega dados (listar conversas, buscar mensagens) e o próprio Claude analisa; (b) o MCP tem uma
-  tool "perguntar" que aciona o **agente interno** (OpenRouter, modelo e prompt configurados pelo
-  admin); (c) ambos. A configuração de modelo por usuário (Q8) sugere (b) ou (c).
 - **Q17. Domínio e TLS na VPS:** já existe domínio? O conector MCP remoto do Claude exige HTTPS
   público.
 - **Q18. Retenção dos derivados:** transcrições, textos de imagem e memórias/resumos (mem0) também
