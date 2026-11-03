@@ -51,6 +51,13 @@ services:
       CACHE_REDIS_SAVE_INSTANCES: "false"
       CACHE_LOCAL_ENABLED: "false"
       TELEMETRY_ENABLED: "false"
+      # Mensagens não ficam na Evolution API: a captura é da feature 004.
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      DATABASE_SAVE_DATA_LABELS: "false"
     volumes:
       - evolution-instances:/evolution/instances
     healthcheck:
@@ -98,6 +105,12 @@ services:
       REDIS_URL: redis://redis:6379/0
       EVOLUTION_API_URL: http://evolution-api:8080
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:?defina EVOLUTION_API_KEY no .env}
+      EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:?defina EVOLUTION_WEBHOOK_SECRET no .env}
+      EVOLUTION_WEBHOOK_URL: http://backend:8000/api/v1/internal/webhooks/evolution
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?defina INTERNAL_API_TOKEN no .env}
+      MESSAGE_RETENTION_DAYS: ${MESSAGE_RETENTION_DAYS:-7}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_DEFAULT_MODEL: ${OPENROUTER_DEFAULT_MODEL:-}
       MCP_URL: http://mcp:8001
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8180}
       SMTP_HOST: ${SMTP_HOST:-mailpit}
@@ -124,6 +137,8 @@ services:
     environment:
       <<: *python-env
       REDIS_URL: redis://redis:6379/0
+      BACKEND_URL: http://backend:8000
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?defina INTERNAL_API_TOKEN no .env}
       WORKER_HEARTBEAT_INTERVAL_SECONDS: ${WORKER_HEARTBEAT_INTERVAL_SECONDS:-5}
       WORKER_HEARTBEAT_TTL_SECONDS: ${WORKER_HEARTBEAT_TTL_SECONDS:-20}
     healthcheck:
@@ -139,6 +154,7 @@ services:
     restart: unless-stopped
     environment:
       <<: *python-env
+      BACKEND_URL: http://backend:8000
     ports:
       - ${BIND_ADDRESS:-127.0.0.1}:${MCP_PORT:-8101}:8001
     healthcheck:
