@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=False, extra="ignore")
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    backend_url: str
+    backend_timeout_seconds: float = Field(default=20.0, gt=0)
     mcp_allowed_hosts: str = "localhost:*,127.0.0.1:*,mcp:*"
 
 

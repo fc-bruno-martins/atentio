@@ -7,6 +7,7 @@ dependencies = [
     "structlog>=26.1,<27",
     "mcp>=2.3,<2.4",
     "uvicorn[standard]>=0.54,<0.55",
+    "httpx>=0.28,<0.29",
 ]
 
 [dependency-groups]
@@ -16,7 +17,6 @@ dev = [
     "ruff>=0.17,<0.18",
     "mypy>=2.4,<3",
     "import-linter>=2.15,<3",
-    "httpx>=0.28,<0.29",
 ]
 
 [tool.ruff]

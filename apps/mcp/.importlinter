@@ -6,5 +6,6 @@ name = Camadas (Principio I)
 type = layers
 layers =
     app.main
-    app.tools
+    app.tools | app.infrastructure
+    app.domain
     app.core

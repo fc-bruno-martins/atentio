@@ -8,7 +8,7 @@ pytestmark = pytest.mark.contract
 
 
 async def test_health_do_mcp_responde_ok() -> None:
-    app = create_app(Settings())
+    app = create_app(Settings(backend_url="http://backend"))
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://mcp:8001"
     ) as client:

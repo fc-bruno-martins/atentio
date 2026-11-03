@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field, ValidationError
+from pydantic import Field, SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,8 +25,12 @@ class Settings(BaseSettings):
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     redis_url: str
+    backend_url: str
+    internal_api_token: SecretStr
     worker_heartbeat_interval_seconds: int = Field(default=5, gt=0)
     worker_heartbeat_ttl_seconds: int = Field(default=20, gt=0)
+    reconcile_interval_seconds: int = Field(default=30, gt=0)
+    reconcile_timeout_seconds: float = Field(default=25.0, gt=0)
     worker_alive_file: str = "/tmp/worker-alive"
 
 

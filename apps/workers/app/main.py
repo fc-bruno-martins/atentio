@@ -6,12 +6,15 @@ import sys
 import time
 from pathlib import Path
 
+import httpx
 from redis.asyncio import Redis
 
 from app.core.config import load_settings
 from app.core.logging import configure_logging
+from app.infrastructure.backend_client import BackendNumberReconciler
 from app.infrastructure.heartbeat import RedisHeartbeatPublisher
 from app.jobs.heartbeat import HeartbeatJob
+from app.jobs.reconcile_numbers import ReconcileNumbersJob
 
 
 async def run() -> None:
@@ -23,12 +26,20 @@ async def run() -> None:
         alive_file=Path(settings.worker_alive_file),
         interval_seconds=settings.worker_heartbeat_interval_seconds,
     )
+    http = httpx.AsyncClient(timeout=settings.reconcile_timeout_seconds)
+    reconcile = ReconcileNumbersJob(
+        BackendNumberReconciler(
+            http, settings.backend_url, settings.internal_api_token.get_secret_value()
+        ),
+        interval_seconds=settings.reconcile_interval_seconds,
+    )
     stop = asyncio.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
         asyncio.get_running_loop().add_signal_handler(sig, stop.set)
     try:
-        await job.run(stop)
+        await asyncio.gather(job.run(stop), reconcile.run(stop))
     finally:
+        await http.aclose()
         await redis.aclose()
 
 
