@@ -4,11 +4,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
+from zoneinfo import available_timezones
 
 from app.core.logging import get_logger
 from app.domain.actor import Actor
 from app.domain.errors import InvalidPeriod, InvalidValue, NotFound, WhatsAppUnavailable
-from app.domain.message import Conversation, IncomingMessage, Message, SearchHit
+from app.domain.message import Conversation, IncomingMessage, Message, Overview, SearchHit
 from app.domain.ports import MessageRepository, NumberRepository, WhatsAppGateway
 
 log = get_logger(__name__)
@@ -93,6 +94,12 @@ class MessageService:
         return await self._messages.search(
             actor.user_id, query.strip(), since=since, until=until, limit=MAX_SEARCH_HITS
         )
+
+    async def overview(self, actor: Actor, tz: str = "UTC") -> Overview:
+        """Números da captura da própria pessoa; o fuso define o que é "hoje"."""
+        if tz not in available_timezones():
+            raise InvalidValue("Fuso horário desconhecido.")
+        return await self._messages.overview(actor.user_id, self._clock(), tz)
 
     async def purge_expired(self) -> int:
         return await self._messages.purge_expired(self._clock(), self._retention_days)

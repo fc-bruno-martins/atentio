@@ -198,9 +198,10 @@ class SqlNumberRepository:
         )
 
     async def _list(self, *conditions: ColumnElement[bool]) -> Sequence[WhatsAppNumber]:
+        # Como em `_one`: este repositório só enxerga o WhatsApp, e só ele vai à Evolution API.
         rows = await self._db.scalars(
             select(ChannelConnectionModel)
-            .where(*conditions)
+            .where(ChannelConnectionModel.channel == WHATSAPP, *conditions)
             .order_by(ChannelConnectionModel.created_at)
         )
         return [_number(m) for m in rows]

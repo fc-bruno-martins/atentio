@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from app.domain.analysis import (
     Analysis,
     AnalysisPrompt,
+    Completion,
     CompletionRequest,
     ModelOption,
     UserAiSettings,
@@ -14,7 +15,7 @@ from app.domain.analysis import (
 from app.domain.company import Company
 from app.domain.errors import WhatsAppUnavailable
 from app.domain.invitation import Invitation, InvitationStatus
-from app.domain.message import Conversation, IncomingMessage, Message, UnnamedGroup
+from app.domain.message import Conversation, IncomingMessage, Message, Overview, UnnamedGroup
 from app.domain.number import (
     AttemptStatus,
     ConnectionAttempt,
@@ -459,6 +460,14 @@ class FakeMessages:
     async def set_conversation_name(self, conversation_id: UUID, name: str) -> None:
         self.conversations[conversation_id].name = name
 
+    async def overview(self, owner_user_id: UUID, now: datetime, tz: str) -> Overview:
+        mine = [
+            m
+            for m in self.items.values()
+            if self.conversations[m.conversation_id].owner_user_id == owner_user_id
+        ]
+        return Overview(len(mine), 0, sum(m.from_me for m in mine), 0, [], [])
+
     async def list_by_ids(
         self, conversation_id: UUID, message_ids: Sequence[UUID]
     ) -> Sequence[Message]:
@@ -490,6 +499,12 @@ class FakeAnalyses:
     async def get_for_owner(self, owner_user_id: UUID, analysis_id: UUID) -> Analysis | None:
         found = self.items.get(analysis_id)
         return found if found and found.owner_user_id == owner_user_id else None
+
+    async def get(self, analysis_id: UUID) -> Analysis | None:
+        return self.items.get(analysis_id)
+
+    async def save(self, analysis: Analysis) -> None:
+        self.items[analysis.id] = analysis
 
 
 class FakePrompts:
@@ -528,16 +543,29 @@ class FakeSettings:
         self.retention[company_id] = days
 
 
+FAKE_FACTS = (
+    '{"assuntos": ["proposta"], "pedidos": [{"quem": "Ana", "o_que": "enviar contrato"}], '
+    '"compromissos": [], "decisoes": ["aprovar"], "datas": []}'
+)
+
+
 class FakeAnalysisModel:
     def __init__(self) -> None:
         self.requests: list[CompletionRequest] = []
         self.error: Exception | None = None
+        self.extractor_error: Exception | None = None
+        self.configured = True
+        self.answer = "resultado da analise"
 
-    async def complete(self, request: CompletionRequest) -> str:
+    async def complete(self, request: CompletionRequest) -> Completion:
         self.requests.append(request)
         if self.error:
             raise self.error
-        return "resultado da analise"
+        if request.system.startswith("Você é o agente extrator"):
+            if self.extractor_error:
+                raise self.extractor_error
+            return Completion(FAKE_FACTS, 100, 20, 5)
+        return Completion(self.answer, 200, 40, 7)
 
     async def list_models(self) -> Sequence[ModelOption]:
         return [ModelOption("modelo/padrao", "Padrao"), ModelOption("modelo/y", "Y", 1.0, 2.0)]

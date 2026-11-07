@@ -19,4 +19,7 @@ class Channel:
 CHANNELS = (
     Channel("whatsapp", "WhatsApp", ChannelStatus.AVAILABLE),
     Channel("slack", "Slack", ChannelStatus.COMING_SOON),
+    Channel("teams", "Microsoft Teams", ChannelStatus.COMING_SOON),
+    Channel("discord", "Discord", ChannelStatus.COMING_SOON),
+    Channel("clickup", "ClickUp", ChannelStatus.COMING_SOON),
 )

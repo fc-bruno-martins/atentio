@@ -1,32 +1,49 @@
+from dataclasses import replace
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, BackgroundTasks, status
 
 from app.api.v1.dependencies import (
     AnalysisServiceDep,
     CompanyAdminDep,
     CompanyMemberDep,
+    ContainerDep,
     PromptServiceDep,
+    PublishingServiceDep,
     SettingsServiceDep,
 )
-from app.domain.analysis import Analysis, AnalysisPrompt, UserAiSettings
+from app.container import Container
+from app.core.logging import get_logger
+from app.domain.analysis import Analysis, AnalysisPrompt, AnalysisStatus, UserAiSettings
+from app.domain.outputs import OUTPUTS, ProposedItem
+from app.repositories.analyses import SqlAnalysisRepository
+from app.repositories.messages import SqlMessageRepository
 from app.schemas.analyses import (
+    AgentStepOut,
     AiSettingsIn,
     AiSettingsOut,
     AnalysisIn,
     AnalysisOut,
-    ModelOptionOut,
+    McpSessionOut,
     ModelsOut,
+    OutputConnectorOut,
+    PresetOut,
     PromptIn,
     PromptOut,
+    PublishIn,
     RetentionIn,
     RetentionOut,
 )
-from app.services.analyses import AnalysisRequest
+from app.services.agents import AgentPipeline
+from app.services.analyses import AgentJob, AnalysisRequest
+from app.services.publishing import PublishDecision
+
+log = get_logger(__name__)
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
 prompts_router = APIRouter(prefix="/analysis-prompts", tags=["analyses"])
 models_router = APIRouter(prefix="/analysis-models", tags=["analyses"])
+outputs_router = APIRouter(prefix="/output-connectors", tags=["analyses"])
 settings_router = APIRouter(tags=["settings"])
 
 
@@ -40,6 +57,20 @@ def _analysis(analysis: Analysis) -> AnalysisOut:
         result=analysis.result,
         message_count=analysis.message_count,
         created_at=analysis.created_at,
+        steps=[
+            AgentStepOut(
+                agent=step.agent.value,
+                status=step.status.value,
+                model=step.model,
+                input=dict(step.input),
+                output=dict(step.output),
+                started_at=step.started_at,
+                finished_at=step.finished_at,
+                events=[dict(event) for event in step.events],
+                metrics=dict(step.metrics),
+            )
+            for step in analysis.steps
+        ],
     )
 
 
@@ -60,33 +91,111 @@ async def list_analyses(actor: CompanyMemberDep, service: AnalysisServiceDep) ->
     return [_analysis(a) for a in await service.history(actor)]
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+async def run_agents(container: Container, job: AgentJob) -> None:
+    """Roda os agentes fora da requisição; cada etapa é gravada para quem acompanha."""
+    async with container.session_factory() as db:
+        pipeline = AgentPipeline(
+            messages=SqlMessageRepository(db),
+            analyses=SqlAnalysisRepository(db),
+            model=container.analysis_model,
+            clock=container.clock,
+            checkpoint=db.commit,
+        )
+        try:
+            await pipeline.execute(job)
+        except Exception:
+            log.exception("pipeline_de_agentes_falhou")
+            await db.rollback()
+            repository = SqlAnalysisRepository(db)
+            analysis = await repository.get(job.analysis_id)
+            if analysis is not None:
+                await repository.save(replace(analysis, status=AnalysisStatus.FAILED))
+                await db.commit()
+
+
+@router.post("", status_code=status.HTTP_202_ACCEPTED)
 async def run_analysis(
-    data: AnalysisIn, actor: CompanyMemberDep, service: AnalysisServiceDep
+    data: AnalysisIn,
+    actor: CompanyMemberDep,
+    service: AnalysisServiceDep,
+    container: ContainerDep,
+    background: BackgroundTasks,
 ) -> AnalysisOut:
+    """Começa a análise e responde na hora; o andamento vem em GET /analyses/{id}."""
     request = AnalysisRequest(
         conversation_id=data.conversation_id,
         prompt_id=data.prompt_id,
         prompt_text=data.prompt_text,
-        model=data.model,
+        preset=data.preset,
         since=data.since,
         until=data.until,
         message_ids=data.message_ids,
     )
-    return _analysis(await service.run(actor, request))
+    analysis, job = await service.start(actor, request)
+    background.add_task(run_agents, container, job)
+    return _analysis(analysis)
+
+
+@router.get("/{analysis_id}")
+async def get_analysis(
+    analysis_id: UUID, actor: CompanyMemberDep, service: AnalysisServiceDep
+) -> AnalysisOut:
+    return _analysis(await service.get(actor, analysis_id))
+
+
+@router.post("/{analysis_id}/publish")
+async def publish_analysis(
+    analysis_id: UUID, data: PublishIn, actor: CompanyMemberDep, service: PublishingServiceDep
+) -> AnalysisOut:
+    """Revisão humana: aprova (e publica nos conectores de saída) ou descarta."""
+    decision = PublishDecision(
+        approve=data.approve,
+        destinations=data.destinations,
+        summary=data.summary,
+        items=None
+        if data.items is None
+        else [ProposedItem(i.title, i.owner, i.due) for i in data.items],
+    )
+    return _analysis(await service.publish(actor, analysis_id, decision))
+
+
+@outputs_router.post("/{output_id}/connect")
+async def connect_output(
+    output_id: str, actor: CompanyMemberDep, service: PublishingServiceDep
+) -> McpSessionOut:
+    """Conexão simulada: faz o handshake MCP e devolve as ferramentas do destino."""
+    session = await service.connect(actor, output_id)
+    return McpSessionOut(
+        server=session.server, workspace=session.workspace, tools=list(session.tools)
+    )
+
+
+@outputs_router.get("")
+async def list_output_connectors(_: CompanyMemberDep) -> list[OutputConnectorOut]:
+    return [
+        OutputConnectorOut(
+            id=o.id, name=o.name, action=o.action, tool=o.tool, status=o.status.value, note=o.note
+        )
+        for o in OUTPUTS
+    ]
 
 
 @models_router.get("")
 async def list_models(actor: CompanyMemberDep, service: AnalysisServiceDep) -> ModelsOut:
     choice = await service.available_models(actor)
     return ModelsOut(
-        models=[
-            ModelOptionOut(
-                id=m.id, name=m.name, input_price=m.input_price, output_price=m.output_price
+        presets=[
+            PresetOut(
+                id=option.preset.id,
+                label=option.preset.label,
+                description=option.preset.description,
+                model=option.preset.model,
+                input_price=option.price.input_price if option.price else None,
+                output_price=option.price.output_price if option.price else None,
             )
-            for m in choice.models
+            for option in choice.presets
         ],
-        default_model=choice.default_model,
+        default_preset=choice.default_preset,
     )
 
 

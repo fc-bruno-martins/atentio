@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 
 from app.core.logging import get_logger
-from app.domain.analysis import CompletionRequest, ModelOption
+from app.domain.analysis import Completion, CompletionRequest, ModelOption
 from app.domain.errors import AnalysisModelFailed, AnalysisNotConfigured
 
 log = get_logger(__name__)
@@ -53,6 +53,10 @@ class OpenRouterModel:
         self._models: Sequence[ModelOption] = ()
         self._models_at: float | None = None
 
+    @property
+    def configured(self) -> bool:
+        return bool(self._api_key)
+
     async def list_models(self) -> Sequence[ModelOption]:
         """A lista é pública. Em falha, a última lista conhecida continua valendo."""
         fresh = self._models_at is not None and self._clock() - self._models_at < self._models_ttl
@@ -71,7 +75,7 @@ class OpenRouterModel:
         self._models_at = self._clock()
         return self._models
 
-    async def complete(self, request: CompletionRequest) -> str:
+    async def complete(self, request: CompletionRequest) -> Completion:
         if not self._api_key:
             raise AnalysisNotConfigured()
         body: dict[str, Any] = {
@@ -83,14 +87,23 @@ class OpenRouterModel:
         }
         if request.temperature is not None:
             body["temperature"] = request.temperature
+        started = time.perf_counter()
         try:
             response = await self._client.post(
                 self._url, json=body, headers={"Authorization": f"Bearer {self._api_key}"}
             )
             response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
             raise AnalysisModelFailed() from error
         if not isinstance(content, str) or not content:
             raise AnalysisModelFailed()
-        return content
+        usage = data.get("usage") if isinstance(data, dict) else None
+        usage = usage if isinstance(usage, dict) else {}
+        return Completion(
+            text=content,
+            input_tokens=usage.get("prompt_tokens"),
+            output_tokens=usage.get("completion_tokens"),
+            latency_ms=round((time.perf_counter() - started) * 1000),
+        )

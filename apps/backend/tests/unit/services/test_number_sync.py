@@ -258,6 +258,27 @@ async def test_instancia_sumida_desconecta() -> None:
     assert not number.is_connected
 
 
+async def test_conexao_de_demonstracao_e_confirmada_sem_consultar_a_evolution() -> None:
+    world = World()
+    number = world.number(world.user, PHONE)
+    number.instance_name = "demo-pitch"
+    summary = await world.sync.reconcile()
+    assert number.is_connected
+    assert summary.confirmed == 1
+    assert number.last_confirmed_at == world.now
+
+
+async def test_desconectar_demonstracao_nao_chama_a_evolution() -> None:
+    world = World()
+    number = world.number(world.user, PHONE)
+    number.instance_name = "demo-pitch"
+    number.disconnect(DisconnectReason.OWNER, world.now)
+    assert await world.sync.close_number_instance(number)
+    assert number.instance_name is None
+    assert world.gateway.logged_out == []
+    assert world.gateway.deleted == []
+
+
 async def test_evolution_fora_nao_altera_a_situacao() -> None:
     world = World()
     number = world.number(world.user, PHONE)

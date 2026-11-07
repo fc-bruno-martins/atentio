@@ -14,6 +14,8 @@ CONFIRMATION_WINDOW = timedelta(minutes=2)
 DOWN_TOLERANCE = timedelta(seconds=25)
 OPEN_STATE = "open"
 LOGGED_OUT_CODE = 401
+# Conexões de demonstração (seed): não existem na Evolution API, e a reconciliação só as confirma.
+DEMO_INSTANCE_PREFIX = "demo-"
 
 
 class NumberStatus(StrEnum):
@@ -105,6 +107,10 @@ class WhatsAppNumber:
     @property
     def is_connected(self) -> bool:
         return self.status is NumberStatus.CONNECTED
+
+    @property
+    def is_demo(self) -> bool:
+        return (self.instance_name or "").startswith(DEMO_INSTANCE_PREFIX)
 
     def reconnect(self, instance_name: str, now: datetime) -> None:
         if not self.is_connected:

@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -34,6 +36,7 @@ class AnalysisModelRow(TimestampMixin, Base):
     result: Mapped[str | None] = mapped_column(Text)
     message_count: Mapped[int] = mapped_column(Integer)
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    steps: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]")
 
 
 class UserAiSettingsModel(TimestampMixin, Base):

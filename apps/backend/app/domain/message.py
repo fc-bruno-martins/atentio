@@ -1,7 +1,8 @@
 """Conversas e mensagens capturadas dos números conectados."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -83,3 +84,28 @@ class UnnamedGroup:
     conversation_id: UUID
     instance_name: str
     remote_jid: str
+
+
+@dataclass(frozen=True)
+class DayCount:
+    day: date
+    messages: int
+
+
+@dataclass(frozen=True)
+class ConversationActivity:
+    conversation_id: UUID
+    messages: int
+    last_24h: int
+
+
+@dataclass(frozen=True)
+class Overview:
+    """Números da captura da pessoa, para o painel inicial."""
+
+    total_messages: int
+    last_24h: int
+    from_me: int
+    people: int
+    by_day: Sequence[DayCount]
+    conversations: Sequence[ConversationActivity]

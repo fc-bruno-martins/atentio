@@ -22,9 +22,18 @@ async def test_envia_modelo_mensagens_e_chave() -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
-        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": "ok"}}],
+                "usage": {"prompt_tokens": 12, "completion_tokens": 3},
+            },
+        )
 
-    assert await _model(handler).complete(REQUEST) == "ok"
+    completion = await _model(handler).complete(REQUEST)
+    assert completion.text == "ok"
+    assert (completion.input_tokens, completion.output_tokens) == (12, 3)
+    assert completion.latency_ms >= 0
     body = json.loads(seen[0].content)
     assert body["model"] == "m"
     assert body["temperature"] == 0.2

@@ -1,13 +1,14 @@
 """Ports do backend: services dependem daqui, nunca de implementações."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import UUID
 
 from app.domain.analysis import (
     Analysis,
     AnalysisPrompt,
+    Completion,
     CompletionRequest,
     ModelOption,
     UserAiSettings,
@@ -15,13 +16,21 @@ from app.domain.analysis import (
 from app.domain.api_token import ApiToken
 from app.domain.company import Company
 from app.domain.invitation import Invitation
-from app.domain.message import Conversation, IncomingMessage, Message, SearchHit, UnnamedGroup
+from app.domain.message import (
+    Conversation,
+    IncomingMessage,
+    Message,
+    Overview,
+    SearchHit,
+    UnnamedGroup,
+)
 from app.domain.number import (
     ConnectionAttempt,
     DisconnectReason,
     InstanceInfo,
     WhatsAppNumber,
 )
+from app.domain.outputs import DeliveryResult, McpSession, OutputConnector
 from app.domain.password_reset import PasswordReset
 from app.domain.platform_status import Component, ComponentStatus
 from app.domain.session import AuthSession
@@ -193,12 +202,15 @@ class MessageRepository(Protocol):
         self, conversation_id: UUID, message_ids: Sequence[UUID]
     ) -> Sequence[Message]: ...
     async def purge_expired(self, now: datetime, default_days: int) -> int: ...
+    async def overview(self, owner_user_id: UUID, now: datetime, tz: str) -> Overview: ...
 
 
 class AnalysisRepository(Protocol):
     async def add(self, analysis: Analysis) -> None: ...
     async def list_by_owner(self, owner_user_id: UUID) -> Sequence[Analysis]: ...
     async def get_for_owner(self, owner_user_id: UUID, analysis_id: UUID) -> Analysis | None: ...
+    async def get(self, analysis_id: UUID) -> Analysis | None: ...
+    async def save(self, analysis: Analysis) -> None: ...
 
 
 class PromptRepository(Protocol):
@@ -218,8 +230,19 @@ class SettingsRepository(Protocol):
 
 
 class AnalysisModel(Protocol):
-    async def complete(self, request: CompletionRequest) -> str: ...
+    @property
+    def configured(self) -> bool: ...
+    async def complete(self, request: CompletionRequest) -> Completion: ...
     async def list_models(self) -> Sequence[ModelOption]: ...
+
+
+class OutputGateway(Protocol):
+    """Conversa por MCP com um conector de saída: handshake e chamadas de ferramenta."""
+
+    async def connect(self, connector: OutputConnector) -> McpSession: ...
+    async def deliver(
+        self, connector: OutputConnector, call: Mapping[str, Any]
+    ) -> DeliveryResult: ...
 
 
 class ApiTokenRepository(Protocol):

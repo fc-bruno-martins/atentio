@@ -1,7 +1,7 @@
 """Implementa o port de mensagens. Models do ORM não saem deste módulo."""
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import ColumnElement, DateTime, delete, exists, func, literal, select, update
@@ -11,10 +11,13 @@ from sqlalchemy.orm import InstrumentedAttribute
 
 from app.domain.message import (
     Conversation,
+    ConversationActivity,
     ConversationKind,
+    DayCount,
     IncomingMessage,
     Message,
     MessageType,
+    Overview,
     SearchHit,
     UnnamedGroup,
 )
@@ -28,6 +31,8 @@ from app.models import (
 )
 
 MAX_CONVERSATIONS = 200
+OVERVIEW_DAYS = 7
+OVERVIEW_CONVERSATIONS = 60
 
 
 def _conversation(m: ConversationModel) -> Conversation:
@@ -240,3 +245,51 @@ class SqlMessageRepository:
             )
         )
         return count
+
+    async def overview(self, owner_user_id: UUID, now: datetime, tz: str) -> Overview:
+        recent = now - timedelta(hours=24)
+        mine = MessageModel.owner_user_id == owner_user_id
+        last_24h = func.count().filter(MessageModel.sent_at >= recent)
+        totals = (
+            await self._db.execute(
+                select(
+                    func.count(),
+                    last_24h,
+                    func.count().filter(MessageModel.from_me.is_(True)),
+                    # Na conversa direta, quem fala é o próprio contato da conversa.
+                    func.count(
+                        func.distinct(
+                            func.coalesce(MessageModel.sender_ref, ConversationModel.external_ref)
+                        )
+                    ).filter(MessageModel.from_me.is_(False)),
+                )
+                .join(ConversationModel, ConversationModel.id == MessageModel.conversation_id)
+                .where(mine)
+            )
+        ).one()
+        local_day = func.date(func.timezone(tz, MessageModel.sent_at))
+        days = await self._db.execute(
+            select(local_day, func.count())
+            .where(mine, MessageModel.sent_at >= now - timedelta(days=OVERVIEW_DAYS))
+            .group_by(local_day)
+            .order_by(local_day)
+        )
+        total = func.count()
+        conversations = await self._db.execute(
+            select(MessageModel.conversation_id, total, last_24h)
+            .where(mine)
+            .group_by(MessageModel.conversation_id)
+            .order_by(total.desc())
+            .limit(OVERVIEW_CONVERSATIONS)
+        )
+        return Overview(
+            total_messages=totals[0],
+            last_24h=totals[1],
+            from_me=totals[2],
+            people=totals[3],
+            by_day=[DayCount(day, count) for day, count in days],
+            conversations=[
+                ConversationActivity(cid, count, recent_count)
+                for cid, count, recent_count in conversations
+            ],
+        )

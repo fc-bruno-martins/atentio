@@ -58,10 +58,15 @@ COMPANY_MEMBER = {
     ("GET", "/api/v1/analyses"),
     ("GET", "/api/v1/analysis-models"),
     ("POST", "/api/v1/analyses"),
+    ("GET", "/api/v1/analyses/{analysis_id}"),
+    ("POST", "/api/v1/analyses/{analysis_id}/publish"),
+    ("GET", "/api/v1/output-connectors"),
+    ("POST", "/api/v1/output-connectors/{output_id}/connect"),
     ("GET", "/api/v1/analysis-prompts"),
     ("POST", "/api/v1/analysis-prompts"),
     ("DELETE", "/api/v1/analysis-prompts/{prompt_id}"),
     ("GET", "/api/v1/conversations/{conversation_id}/messages"),
+    ("GET", "/api/v1/overview"),
 }
 # Protegidas por segredo próprio: ver tests/contract/test_internal.py.
 INTERNAL = {
@@ -95,6 +100,8 @@ def _fill(path: str) -> str:
         "conversation_id",
         "prompt_id",
         "token_id",
+        "analysis_id",
+        "output_id",
     ):
         path = path.replace(f"{{{name}}}", str(uuid4()))
     return path

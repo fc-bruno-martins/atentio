@@ -1,12 +1,15 @@
 """Implementam os ports de análises. Models do ORM não saem deste módulo."""
 
 from collections.abc import Sequence
+from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domain.agents import Agent, AgentStep, StepStatus
 from app.domain.analysis import Analysis, AnalysisPrompt, AnalysisStatus, UserAiSettings
 from app.models import (
     AnalysisModelRow,
@@ -16,6 +19,42 @@ from app.models import (
 )
 
 HISTORY_LIMIT = 100
+
+
+def _when(value: datetime | None) -> str | None:
+    return value.isoformat() if value else None
+
+
+def _step_out(step: AgentStep) -> dict[str, Any]:
+    return {
+        "agent": step.agent.value,
+        "status": step.status.value,
+        "model": step.model,
+        "input": dict(step.input),
+        "output": dict(step.output),
+        "started_at": _when(step.started_at),
+        "finished_at": _when(step.finished_at),
+        "events": [dict(event) for event in step.events],
+        "metrics": dict(step.metrics),
+    }
+
+
+def _step_in(data: dict[str, Any]) -> AgentStep:
+    def when(key: str) -> datetime | None:
+        value = data.get(key)
+        return datetime.fromisoformat(value) if value else None
+
+    return AgentStep(
+        agent=Agent(data["agent"]),
+        status=StepStatus(data["status"]),
+        model=data.get("model"),
+        input=data.get("input") or {},
+        output=data.get("output") or {},
+        started_at=when("started_at"),
+        finished_at=when("finished_at"),
+        events=tuple(data.get("events") or ()),
+        metrics=data.get("metrics") or {},
+    )
 
 
 def _analysis(m: AnalysisModelRow) -> Analysis:
@@ -30,6 +69,7 @@ def _analysis(m: AnalysisModelRow) -> Analysis:
         result=m.result,
         message_count=m.message_count,
         created_at=m.analyzed_at,
+        steps=[_step_in(step) for step in m.steps or []],
     )
 
 
@@ -54,9 +94,26 @@ class SqlAnalysisRepository:
                 result=analysis.result,
                 message_count=analysis.message_count,
                 analyzed_at=analysis.created_at,
+                steps=[_step_out(step) for step in analysis.steps],
             )
         )
         await self._db.flush()
+
+    async def save(self, analysis: Analysis) -> None:
+        """Atualiza estado, resultado e rastro dos agentes."""
+        await self._db.execute(
+            update(AnalysisModelRow)
+            .where(AnalysisModelRow.id == analysis.id)
+            .values(
+                status=analysis.status.value,
+                result=analysis.result,
+                steps=[_step_out(step) for step in analysis.steps],
+            )
+        )
+
+    async def get(self, analysis_id: UUID) -> Analysis | None:
+        model = await self._db.get(AnalysisModelRow, analysis_id, populate_existing=True)
+        return _analysis(model) if model else None
 
     async def list_by_owner(self, owner_user_id: UUID) -> Sequence[Analysis]:
         rows = await self._db.scalars(

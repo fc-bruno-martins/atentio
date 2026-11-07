@@ -147,4 +147,38 @@ async def test_catalogo_de_canais(api: Api) -> None:
     assert {c["id"]: c["status"] for c in channels} == {
         "whatsapp": "available",
         "slack": "coming_soon",
+        "teams": "coming_soon",
+        "discord": "coming_soon",
+        "clickup": "coming_soon",
     }
+
+
+async def test_visao_geral_conta_so_as_mensagens_da_pessoa(api: Api) -> None:
+    _, _, user, other, instance = await _connected(api)
+    await _send(api, instance, _data("A"))
+    await _send(api, instance, _data("B", age_days=2))
+    await _send(api, instance, _data("C", age_days=3, jid="5522@s.whatsapp.net"))
+
+    response = await api.client.get(
+        "/api/v1/overview", params={"tz": "America/Sao_Paulo"}, headers=user.headers
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total_messages"] == 3
+    assert body["last_24h"] == 1
+    assert body["people"] == 2
+    assert sum(day["messages"] for day in body["by_day"]) == 3
+    assert [c["messages"] for c in body["conversations"]] == [2, 1]
+    assert body["conversations"][0]["last_24h"] == 1
+
+    empty = (await api.client.get("/api/v1/overview", headers=other.headers)).json()
+    assert empty["total_messages"] == 0
+    assert empty["conversations"] == []
+
+
+async def test_visao_geral_recusa_fuso_desconhecido(api: Api) -> None:
+    _, _, user, _, _ = await _connected(api)
+    response = await api.client.get(
+        "/api/v1/overview", params={"tz": "Lua/Base"}, headers=user.headers
+    )
+    assert response.status_code == 422

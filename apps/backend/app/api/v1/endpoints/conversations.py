@@ -6,9 +6,17 @@ from fastapi import APIRouter, Query
 
 from app.api.v1.dependencies import CompanyMemberDep, MessageServiceDep
 from app.domain.message import Conversation, Message
-from app.schemas.conversations import ConversationMessagesOut, ConversationOut, MessageOut
+from app.schemas.conversations import (
+    ConversationActivityOut,
+    ConversationMessagesOut,
+    ConversationOut,
+    DayCountOut,
+    MessageOut,
+    OverviewOut,
+)
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
+overview_router = APIRouter(prefix="/overview", tags=["conversations"])
 
 
 def conversation_out(conversation: Conversation) -> ConversationOut:
@@ -60,4 +68,26 @@ async def readconversation_out(
     return ConversationMessagesOut(
         conversation=conversation_out(result.conversation),
         messages=[message_out(m) for m in result.messages],
+    )
+
+
+@overview_router.get("")
+async def overview(
+    actor: CompanyMemberDep,
+    service: MessageServiceDep,
+    tz: Annotated[str, Query(max_length=64)] = "UTC",
+) -> OverviewOut:
+    result = await service.overview(actor, tz)
+    return OverviewOut(
+        total_messages=result.total_messages,
+        last_24h=result.last_24h,
+        from_me=result.from_me,
+        people=result.people,
+        by_day=[DayCountOut(day=d.day, messages=d.messages) for d in result.by_day],
+        conversations=[
+            ConversationActivityOut(
+                conversation_id=c.conversation_id, messages=c.messages, last_24h=c.last_24h
+            )
+            for c in result.conversations
+        ],
     )

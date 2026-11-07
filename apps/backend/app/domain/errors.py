@@ -72,7 +72,7 @@ class NumberLimitReached(DomainError):
 
 class WhatsAppUnavailable(DomainError):
     code = "whatsapp_unavailable"
-    message = "O serviço de WhatsApp está indisponível no momento. Tente novamente."
+    message = "O conector do WhatsApp está indisponível no momento. Tente novamente."
 
 
 class NumberAlreadyConnected(DomainError):

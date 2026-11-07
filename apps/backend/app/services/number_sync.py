@@ -104,6 +104,11 @@ class NumberSyncService:
     async def _check_connected(self, summary: ReconcileSummary) -> None:
         for number in await self._numbers.list_connected():
             now = self._clock()
+            if number.is_demo:
+                number.confirm(now)
+                summary.confirmed += 1
+                await self._numbers.save(number)
+                continue
             info = (
                 await self._gateway.get_instance(number.instance_name)
                 if number.instance_name
@@ -183,7 +188,9 @@ class NumberSyncService:
         return attempt.instance_removed
 
     async def close_number_instance(self, number: WhatsAppNumber) -> bool:
-        if number.instance_name is None or not await self.remove_instance(number.instance_name):
+        if number.instance_name is None:
+            return False
+        if not number.is_demo and not await self.remove_instance(number.instance_name):
             return False
         number.instance_name = None
         await self._numbers.save(number)

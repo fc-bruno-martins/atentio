@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -27,3 +27,23 @@ class MessageOut(BaseModel):
 class ConversationMessagesOut(BaseModel):
     conversation: ConversationOut
     messages: list[MessageOut]
+
+
+class DayCountOut(BaseModel):
+    day: date
+    messages: int
+
+
+class ConversationActivityOut(BaseModel):
+    conversation_id: UUID
+    messages: int
+    last_24h: int
+
+
+class OverviewOut(BaseModel):
+    total_messages: int
+    last_24h: int
+    from_me: int
+    people: int
+    by_day: list[DayCountOut]
+    conversations: list[ConversationActivityOut]

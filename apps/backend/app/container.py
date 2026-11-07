@@ -1,7 +1,7 @@
 """Raiz de composição: cria os recursos compartilhados de um processo."""
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 import httpx
@@ -15,6 +15,7 @@ from app.domain.ports import (
     AnalysisModel,
     EmailSender,
     LoginThrottle,
+    OutputGateway,
     PasswordHasher,
     TokenGenerator,
     WhatsAppGateway,
@@ -22,6 +23,7 @@ from app.domain.ports import (
 from app.infrastructure.email import SmtpEmailSender
 from app.infrastructure.evolution import EvolutionGateway
 from app.infrastructure.openrouter import OpenRouterModel
+from app.infrastructure.outputs import MockOutputGateway
 from app.infrastructure.probes.database import DatabaseProbe
 from app.infrastructure.probes.http import HttpProbe
 from app.infrastructure.probes.redis import RedisProbe, WorkerHeartbeatProbe
@@ -56,6 +58,7 @@ class Container:
     throttle: LoginThrottle
     email: EmailSender
     dummy_hash: str
+    outputs: OutputGateway = field(default_factory=MockOutputGateway)
     clock: Callable[[], datetime] = utc_now
 
     async def close(self) -> None:

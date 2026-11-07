@@ -39,6 +39,7 @@ from app.services.messages import MessageService
 from app.services.number_sync import NumberSyncService
 from app.services.numbers import NumberService
 from app.services.platform_status import PlatformStatusService
+from app.services.publishing import PublishingService
 from app.services.users import UserAdminService
 
 bearer = HTTPBearer(auto_error=False)
@@ -218,6 +219,17 @@ def get_analysis_service(container: ContainerDep, db: DbSession) -> AnalysisServ
 
 
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+
+
+def get_publishing_service(container: ContainerDep, db: DbSession) -> PublishingService:
+    return PublishingService(
+        analyses=SqlAnalysisRepository(db),
+        gateway=container.outputs,
+        clock=container.clock,
+    )
+
+
+PublishingServiceDep = Annotated[PublishingService, Depends(get_publishing_service)]
 
 
 def get_prompt_service(db: DbSession) -> PromptService:

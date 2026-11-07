@@ -6,6 +6,14 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from app.domain.actor import Actor
+from app.domain.agents import (
+    DEFAULT_PRESET,
+    EXTRACTOR_PRESET,
+    PRESETS,
+    ModelPreset,
+    initial_steps,
+    preset_by_id,
+)
 from app.domain.analysis import (
     MAX_MESSAGES,
     Analysis,
@@ -13,17 +21,15 @@ from app.domain.analysis import (
     AnalysisStatus,
     ModelOption,
     UserAiSettings,
-    build_completion,
     validate_prompt,
     validate_retention,
 )
 from app.domain.errors import (
-    AnalysisModelFailed,
+    AnalysisNotConfigured,
     InvalidPeriod,
     InvalidValue,
     ModelNotAvailable,
     NoMessagesToAnalyze,
-    NoModelSelected,
     NotFound,
 )
 from app.domain.message import Message
@@ -42,16 +48,35 @@ class AnalysisRequest:
     conversation_id: UUID
     prompt_id: UUID | None = None
     prompt_text: str | None = None
-    model: str | None = None
+    preset: str | None = None
     since: datetime | None = None
     until: datetime | None = None
     message_ids: Sequence[UUID] = ()
 
 
 @dataclass(frozen=True)
+class PresetOption:
+    preset: ModelPreset
+    price: ModelOption | None
+
+
+@dataclass(frozen=True)
 class ModelChoice:
-    models: Sequence[ModelOption]
-    default_model: str | None
+    presets: Sequence[PresetOption]
+    default_preset: str
+
+
+@dataclass(frozen=True)
+class AgentJob:
+    """O que o pipeline de agentes precisa para trabalhar fora da requisição."""
+
+    analysis_id: UUID
+    conversation_id: UUID
+    message_ids: Sequence[UUID]
+    prompt: str
+    model: str
+    extractor_model: str
+    settings: UserAiSettings | None
 
 
 class AnalysisService:
@@ -74,45 +99,58 @@ class AnalysisService:
         self._default_model = default_model
 
     async def available_models(self, actor: Actor) -> ModelChoice:
+        """Só os modelos pré-selecionados, com preço quando o catálogo responde."""
         settings = await self._settings.get_ai_settings(actor.user_id)
-        default = (settings.model if settings else None) or self._default_model
-        return ModelChoice(await self._model.list_models(), default)
+        try:
+            catalog = {m.id: m for m in await self._model.list_models()}
+        except Exception:
+            catalog = {}
+        chosen = next(
+            (p.id for p in PRESETS if settings is not None and p.model == settings.model),
+            DEFAULT_PRESET,
+        )
+        return ModelChoice([PresetOption(p, catalog.get(p.model)) for p in PRESETS], chosen)
 
-    async def _resolve_model(
-        self, request: AnalysisRequest, settings: UserAiSettings | None
-    ) -> str:
-        """A escolha na tela vence a configuração do admin, que vence o padrão do ambiente."""
-        if request.model:
-            if request.model not in {m.id for m in await self._model.list_models()}:
+    def _resolve_model(self, request: AnalysisRequest, settings: UserAiSettings | None) -> str:
+        """Ordem: preset da tela, modelo do admin, padrão do ambiente e preset padrão."""
+        if request.preset:
+            preset = preset_by_id(request.preset)
+            if preset is None:
                 raise ModelNotAvailable()
-            return request.model
-        model = (settings.model if settings else None) or self._default_model
-        if model is None:
-            raise NoModelSelected()
-        return model
+            return preset.model
+        if settings and settings.model:
+            return settings.model
+        if self._default_model:
+            return self._default_model
+        default = preset_by_id(DEFAULT_PRESET)
+        assert default is not None
+        return default.model
 
     async def history(self, actor: Actor) -> Sequence[Analysis]:
         return await self._analyses.list_by_owner(actor.user_id)
 
-    async def run(self, actor: Actor, request: AnalysisRequest) -> Analysis:
+    async def get(self, actor: Actor, analysis_id: UUID) -> Analysis:
+        analysis = await self._analyses.get_for_owner(actor.user_id, analysis_id)
+        if analysis is None:
+            raise NotFound()
+        return analysis
+
+    async def start(self, actor: Actor, request: AnalysisRequest) -> tuple[Analysis, AgentJob]:
+        """Valida tudo, registra a análise em andamento e devolve o trabalho dos agentes."""
         company_id = actor.require_company()
         conversation = await self._messages.get_conversation(actor.user_id, request.conversation_id)
         if conversation is None:
             raise NotFound()
+        if not self._model.configured:
+            raise AnalysisNotConfigured()
         prompt = await self._resolve_prompt(actor, request)
         messages = await self._select(request)
         if not messages:
             raise NoMessagesToAnalyze()
         settings = await self._settings.get_ai_settings(actor.user_id)
-        model = await self._resolve_model(request, settings)
-        completion = build_completion(
-            model=model, prompt=prompt, messages=messages, settings=settings
-        )
-        try:
-            result: str | None = await self._model.complete(completion)
-            status = AnalysisStatus.DONE
-        except AnalysisModelFailed:
-            result, status = None, AnalysisStatus.FAILED
+        model = self._resolve_model(request, settings)
+        extractor = preset_by_id(EXTRACTOR_PRESET)
+        assert extractor is not None
         analysis = Analysis(
             id=uuid4(),
             company_id=company_id,
@@ -120,13 +158,23 @@ class AnalysisService:
             conversation_id=conversation.id,
             prompt_text=prompt,
             model=model,
-            status=status,
-            result=result,
+            status=AnalysisStatus.RUNNING,
+            result=None,
             message_count=len(messages),
             created_at=self._clock(),
+            steps=initial_steps(model, extractor.model),
         )
         await self._analyses.add(analysis)
-        return analysis
+        job = AgentJob(
+            analysis_id=analysis.id,
+            conversation_id=conversation.id,
+            message_ids=[m.id for m in messages],
+            prompt=prompt,
+            model=model,
+            extractor_model=extractor.model,
+            settings=settings,
+        )
+        return analysis, job
 
     async def _resolve_prompt(self, actor: Actor, request: AnalysisRequest) -> str:
         if request.prompt_id is not None:

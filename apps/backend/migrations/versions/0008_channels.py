@@ -79,6 +79,12 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # Conversas e mensagens de outros canais não existem no esquema antigo.
+    op.execute(
+        "DELETE FROM messages WHERE conversation_id IN "
+        "(SELECT id FROM conversations WHERE channel <> 'whatsapp')"
+    )
+    op.execute("DELETE FROM conversations WHERE channel <> 'whatsapp'")
     op.execute(
         "ALTER TABLE messages RENAME CONSTRAINT "
         "uq_messages_connection_external TO uq_messages_number_external"

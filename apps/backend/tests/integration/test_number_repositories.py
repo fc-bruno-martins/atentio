@@ -104,3 +104,30 @@ async def test_tentativa_filtra_pela_pessoa(container: Container) -> None:
         assert await repo.get_for_user(ana.id, attempt.id) == attempt
         assert await repo.list_pending_by_user(ana.id) == [attempt]
         assert await repo.list_pending_by_user(bia.id) == []
+
+
+async def test_listagens_so_enxergam_conexoes_do_whatsapp(container: Container) -> None:
+    from uuid import uuid4
+
+    from app.models.numbers import ChannelConnectionModel
+
+    company, ana, _ = await _seed(container)
+    whatsapp = _number(company, ana)
+    async with session_scope(container.session_factory) as db:
+        await SqlNumberRepository(db).add(whatsapp)
+        db.add(
+            ChannelConnectionModel(
+                id=uuid4(),
+                company_id=company.id,
+                owner_user_id=ana.id,
+                channel="slack",
+                external_account="T0EXEMPLO",
+                status=NumberStatus.CONNECTED.value,
+                status_changed_at=NOW,
+            )
+        )
+    async with session_scope(container.session_factory) as db:
+        repo = SqlNumberRepository(db)
+        assert await repo.list_connected() == [whatsapp]
+        assert await repo.list_by_owner(ana.id) == [whatsapp]
+        assert await repo.list_by_company(company.id) == [whatsapp]
