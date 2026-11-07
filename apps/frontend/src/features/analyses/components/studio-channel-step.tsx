@@ -30,8 +30,9 @@ export function ChannelStep({ value, onPick }: { value: string; onPick: (channel
           [0, 1].map((index) => <div key={index} className="feat-skeleton h-44 rounded-2xl" />)}
         {channels.data?.map((channel) => {
           const look = channelLook(channel.id)
-          const available = channel.status === 'available'
           const total = count(channel.id)
+          // "Em breve" fala da conexão; conversas já capturadas no canal podem ser analisadas.
+          const available = channel.status === 'available' || total > 0
           return (
             <button
               key={channel.id}

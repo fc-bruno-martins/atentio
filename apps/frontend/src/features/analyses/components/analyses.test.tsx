@@ -151,6 +151,18 @@ it('cria e exclui prompts', async () => {
   )
 })
 
+it('libera canal "em breve" que já tem conversas capturadas', async () => {
+  const slack = { ...conversation, id: 'c2', channel: 'slack', name: '#ext-cliente' }
+  pipelineApi({ 'GET /api/v1/conversations': { body: [conversation, slack] } })
+  renderWithQuery(<AnalysesPage />)
+
+  const button = await screen.findByRole('button', { name: /Slack/ })
+  await waitFor(() => expect(button).toBeEnabled())
+  expect(within(button).getByText('1 conversas capturadas')).toBeInTheDocument()
+  await userEvent.click(button)
+  expect(await screen.findByRole('button', { name: /#ext-cliente/ })).toBeInTheDocument()
+})
+
 it('percorre o pipeline e executa com as mensagens mais recentes', async () => {
   const calls = pipelineApi()
   renderWithQuery(<AnalysesPage />)
