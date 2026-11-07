@@ -41,7 +41,8 @@ def register_tools(server: MCPServer, reader: MessageReader) -> None:
     async def list_conversations(
         ctx: Context,
         channel: Annotated[
-            str | None, Field(description="Filtra por canal, como `whatsapp`")
+            str | None,
+            Field(description="Filtra por conector: whatsapp, slack, teams, discord ou clickup"),
         ] = None,
     ) -> Any:
         """Lista grupos e conversas de todos os canais, das mais recentes para as mais antigas."""
