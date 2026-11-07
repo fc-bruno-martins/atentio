@@ -1,6 +1,8 @@
-# Configuração local e credenciais do Claude Code
-.claude/settings.local.json
-.claude/*.local.*
+# Harness de desenvolvimento local: Claude Code, Spec Kit e specs ficam fora do repositório
+.claude/
+.specify/
+CLAUDE.md
+specs/
 
 # Segredos
 .env
