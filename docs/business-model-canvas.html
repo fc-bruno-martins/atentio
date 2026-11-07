@@ -95,7 +95,7 @@
   .competitors .who { margin: 0 0 6px; color: var(--quiet); font-size: 13px; }
   .competitors p { margin: 0; }
   .competitors .edge { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
-  @media (max-width: 800px) {
+  @media screen and (max-width: 800px) {
     body { padding: 16px; }
     .canvas {
       grid-template-columns: 1fr;
@@ -106,8 +106,16 @@
   @media print {
     @page { size: A4 landscape; margin: 10mm; }
     :root { --ink: #1a1f36; --quiet: #5b6275; --line: #c9ced8; --accent: #1d5bd8; --accent-tint: #eef3fd; --bg: #fff; }
-    body { padding: 0; font-size: 12px; }
-    .block { break-inside: avoid; padding: 10px 12px; }
+    body { padding: 0; font-size: 11px; }
+    header { margin-bottom: 8px; }
+    h1 { font-size: 20px; }
+    .canvas { gap: 6px; }
+    .block { break-inside: avoid; padding: 8px 10px; }
+    .block h2 { margin-bottom: 6px; font-size: 13px; }
+    .num { width: 22px; height: 22px; font-size: 11px; }
+    li + li { margin-top: 3px; }
+    .competitors { margin-top: 6px; }
+    .competitors .grid { gap: 12px; }
     .block.main { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>

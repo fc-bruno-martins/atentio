@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atentio · Pitch deck</title>
+<!-- Mesmo conteúdo de apps/frontend/src/features/business/services/content.ts; ao mudar um, mude o outro. -->
+<style>
+  :root {
+    --ink: #1a1f36;
+    --quiet: #5b6275;
+    --line: #d6dae2;
+    --accent: #00a676;
+    --accent-ink: #00734f;
+    --accent-2: #22d3ee;
+    --card: #f6f8fb;
+    --bg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9ecf2; }
+  body { font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    margin: 24px auto;
+    padding: 72px 88px;
+    background: var(--bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide::after {
+    content: attr(data-page);
+    position: absolute;
+    right: 32px;
+    bottom: 22px;
+    font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--quiet);
+  }
+  .eyebrow { margin: 0; font: 15px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-ink); }
+  h1, h2 { margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: 50px; line-height: 1.12; }
+  .rule { width: 150px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2), transparent); }
+  .head { display: flex; flex-direction: column; gap: 14px; }
+  ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 18px; font-size: 24px; }
+  li { display: flex; gap: 16px; align-items: flex-start; }
+  li::before { content: ""; flex: none; width: 11px; height: 11px; margin-top: 10px; border-radius: 50%; background: var(--accent); }
+  .cards { display: flex; gap: 20px; }
+  .card { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .card h3 { margin: 0; font-size: 24px; }
+  .card p { margin: 0; font-size: 19px; color: var(--quiet); line-height: 1.4; }
+  .card .step { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent-ink); }
+  .flow { display: flex; align-items: stretch; gap: 12px; }
+  .arrow { flex: none; align-self: center; color: var(--accent-ink); font-size: 28px; }
+  .note { margin: 0; font-size: 18px; color: var(--quiet); }
+  .cover h1 { font-size: 120px; line-height: 1; color: var(--accent-ink); }
+  .cover .subtitle { margin: 0; font-size: 36px; font-weight: 600; }
+  .statement h2 { font-size: 64px; line-height: 1.15; }
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { background: #fff; }
+    .slide { margin: 0; border-radius: 0; box-shadow: none; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<section class="slide cover" data-page="1 / 11">
+  <p class="eyebrow">Pitch deck</p>
+  <h1>Atentio</h1>
+  <p class="subtitle">O copiloto agêntico do gestor de Customer Success</p>
+  <p class="note">Nenhum cliente esquecido.</p>
+</section>
+
+<section class="slide statement" data-page="2 / 11">
+  <p class="eyebrow">Imagine</p>
+  <h2>Você cuida de 80 contas. Qual delas está esperando resposta desde ontem?</h2>
+</section>
+
+<section class="slide" data-page="3 / 11">
+  <div class="head"><p class="eyebrow">Problema</p><h2>O relacionamento se perde no volume</h2><div class="rule"></div></div>
+  <ul>
+    <li>O gestor de CS conversa com dezenas de clientes ao mesmo tempo.</li>
+    <li>As conversas estão espalhadas em grupos de WhatsApp e canais de Slack.</li>
+    <li>Pedidos, reclamações e sinais de risco se perdem no meio das mensagens.</li>
+    <li>O cliente percebe antes do gestor.</li>
+  </ul>
+</section>
+
+<section class="slide" data-page="4 / 11">
+  <div class="head"><p class="eyebrow">Solução</p><h2>Conecte os canais e pergunte ao agente</h2><div class="rule"></div></div>
+  <div class="cards">
+    <div class="card"><h3>Quem espera resposta?</h3><p>"Quais clientes estão sem resposta hoje?"</p></div>
+    <div class="card"><h3>Resumo por conta</h3><p>"Resuma o grupo da conta X desta semana."</p></div>
+    <div class="card"><h3>Sinais de risco</h3><p>"Algum cliente demonstrou insatisfação?"</p></div>
+  </div>
+  <p class="note">As conversas chegam numa caixa única. O agente responde sob demanda, na plataforma e no Claude, via MCP.</p>
+</section>
+
+<section class="slide" data-page="5 / 11">
+  <div class="head"><p class="eyebrow">Como funciona</p><h2>Da conversa à tarefa, com uma pessoa no controle</h2><div class="rule"></div></div>
+  <div class="flow">
+    <div class="card"><span class="step">01</span><h3>Conectores</h3><p>WhatsApp hoje; Slack, Teams, Discord e ClickUp em seguida. Só leitura.</p></div>
+    <span class="arrow">→</span>
+    <div class="card"><span class="step">02</span><h3>Agentes</h3><p>Coletor, extrator, analista e estruturador leem e organizam a conversa.</p></div>
+    <span class="arrow">→</span>
+    <div class="card"><span class="step">03</span><h3>Revisão humana</h3><p>O publicador propõe resumo e pendências; a pessoa aprova, edita ou descarta.</p></div>
+    <span class="arrow">→</span>
+    <div class="card"><span class="step">04</span><h3>Destinos</h3><p>Notion, Jira, ClickUp e Azure DevOps, por MCP. E o Claude consulta tudo.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-page="6 / 11">
+  <div class="head"><p class="eyebrow">Diferencial</p><h2>Onde o cliente já fala</h2><div class="rule"></div></div>
+  <ul>
+    <li>Sem migrar canal: o cliente continua no WhatsApp e no Slack.</li>
+    <li>Zero digitação: nenhum CRM para preencher.</li>
+    <li>Somente leitura: a Atentio nunca envia mensagem em nome do gestor.</li>
+    <li>Nada é publicado sem aprovação humana.</li>
+  </ul>
+</section>
+
+<section class="slide" data-page="7 / 11">
+  <div class="head"><p class="eyebrow">Para quem</p><h2>Gestores de Customer Success B2B</h2><div class="rule"></div></div>
+  <div class="cards">
+    <div class="card"><h3>Times de 5 a 50 pessoas</h3><p>Que atendem clientes em diversos conectores.</p></div>
+    <div class="card"><h3>A dor</h3><p>Pedidos e riscos perdidos no volume de mensagens.</p></div>
+    <div class="card"><h3>O ganho</h3><p>Saber quem precisa de atenção hoje, sem ler tudo.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-page="8 / 11">
+  <div class="head"><p class="eyebrow">Modelo de negócio</p><h2>Assinatura, com piloto assistido</h2><div class="rule"></div></div>
+  <div class="cards">
+    <div class="card"><h3>Receita</h3><p>Assinatura por gestor conectado ou plano por empresa.</p></div>
+    <div class="card"><h3>Canais</h3><p>Venda direta ao head de CS, comunidades de CS e o conector no Claude.</p></div>
+    <div class="card"><h3>Custos</h3><p>Infraestrutura por conta conectada, consumo de IA por análise e implantação.</p></div>
+  </div>
+  <p class="note">Preços e canais são hipóteses a validar no piloto.</p>
+</section>
+
+<section class="slide" data-page="9 / 11">
+  <div class="head"><p class="eyebrow">Concorrência</p><h2>Ninguém lê a conversa por conta</h2><div class="rule"></div></div>
+  <div class="cards">
+    <div class="card"><h3>Plataformas de CS</h3><p>Gainsight, ChurnZero, SenseData: dependem de CRM e de dados preenchidos.</p></div>
+    <div class="card"><h3>Caixas omnichannel</h3><p>Blip, Zenvia, Octadesk: foco em atender e enviar, não no relacionamento.</p></div>
+    <div class="card"><h3>Alternativa atual</h3><p>Celular, planilha e memória: custo zero, mas pedidos se perdem.</p></div>
+  </div>
+  <p class="note">O Atentio lê as conversas onde o cliente já fala, sem migrar canal e sem ninguém digitar nada.</p>
+</section>
+
+<section class="slide" data-page="10 / 11">
+  <div class="head"><p class="eyebrow">Onde estamos</p><h2>MVP funcionando</h2><div class="rule"></div></div>
+  <ul>
+    <li>Plataforma multiempresa, com dados isolados por empresa.</li>
+    <li>WhatsApp conectado por QR code, com captura das conversas.</li>
+    <li>Estúdio de análises com cinco agentes e o rastro de cada etapa.</li>
+    <li>Servidor MCP para consultar as conversas pelo Claude.</li>
+    <li>Publicação nos destinos com aprovação humana, ainda em modo simulado.</li>
+  </ul>
+</section>
+
+<section class="slide statement" data-page="11 / 11">
+  <p class="eyebrow">Nosso pedido</p>
+  <h2>Indicação de 3 times de CS para um piloto de 30 dias.</h2>
+  <p class="note">Atentio · nenhum cliente esquecido</p>
+</section>
+
+</body>
+</html>
