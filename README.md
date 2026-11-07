@@ -1,4 +1,4 @@
-# Judite
+# Atentio
 
 Plataforma web que espelha números de WhatsApp via Evolution API e expõe os dados ao Claude por um
 servidor MCP. Visão e decisões: `docs/prd.md`. Backlog: `docs/backlog.md`.

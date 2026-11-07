@@ -32,8 +32,8 @@ async def test_sessao_criada_vale_na_chamada_seguinte(api: Api) -> None:
 async def test_senha_errada_e_email_inexistente_respondem_igual(api: Api) -> None:
     await api.platform_admin()
 
-    wrong = await api.client.post(LOGIN, json={"email": "root@judite.com", "password": "x"})
-    unknown = await api.client.post(LOGIN, json={"email": "nao@judite.com", "password": "x"})
+    wrong = await api.client.post(LOGIN, json={"email": "root@atentio.com", "password": "x"})
+    unknown = await api.client.post(LOGIN, json={"email": "nao@atentio.com", "password": "x"})
 
     assert wrong.status_code == unknown.status_code == 401
     assert wrong.json() == unknown.json()
@@ -45,11 +45,11 @@ async def test_login_invalido_retorna_422(api: Api) -> None:
 
 async def test_bloqueio_apos_cinco_falhas(api: Api) -> None:
     await api.platform_admin()
-    body = {"email": "root@judite.com", "password": "errada"}
+    body = {"email": "root@atentio.com", "password": "errada"}
     for _ in range(5):
         assert (await api.client.post(LOGIN, json=body)).status_code == 401
 
-    blocked = await api.client.post(LOGIN, json={"email": "root@judite.com", "password": PASSWORD})
+    blocked = await api.client.post(LOGIN, json={"email": "root@atentio.com", "password": PASSWORD})
 
     assert blocked.status_code == 429
 
@@ -61,7 +61,7 @@ async def test_login_funciona_com_redis_fora(
     monkeypatch.setattr(container.redis, "get", AsyncMock(side_effect=RedisConnectionError()))
     monkeypatch.setattr(container.redis, "delete", AsyncMock(side_effect=RedisConnectionError()))
 
-    assert (await api.login("root@judite.com")).headers
+    assert (await api.login("root@atentio.com")).headers
 
 
 async def test_token_invalido_responde_401(api: Api) -> None:
@@ -75,15 +75,15 @@ async def test_recuperacao_responde_igual_e_envia_so_para_conta_existente(api: A
     await api.platform_admin()
 
     known = await api.client.post(
-        "/api/v1/auth/password-recovery", json={"email": "root@judite.com"}
+        "/api/v1/auth/password-recovery", json={"email": "root@atentio.com"}
     )
     unknown = await api.client.post(
-        "/api/v1/auth/password-recovery", json={"email": "nao@judite.com"}
+        "/api/v1/auth/password-recovery", json={"email": "nao@atentio.com"}
     )
 
     assert known.status_code == unknown.status_code == 202
     assert known.json() == unknown.json()
-    assert [e["to"] for e in api.email.resets] == ["root@judite.com"]
+    assert [e["to"] for e in api.email.resets] == ["root@atentio.com"]
 
 
 async def test_falha_de_envio_na_recuperacao_nao_muda_a_resposta(api: Api) -> None:
@@ -91,7 +91,7 @@ async def test_falha_de_envio_na_recuperacao_nao_muda_a_resposta(api: Api) -> No
     api.email.fail = True
 
     response = await api.client.post(
-        "/api/v1/auth/password-recovery", json={"email": "root@judite.com"}
+        "/api/v1/auth/password-recovery", json={"email": "root@atentio.com"}
     )
 
     assert response.status_code == 202

@@ -1,4 +1,4 @@
-# Judite Frontend
+# Atentio Frontend
 
 Next.js com Feature-Driven Architecture (ADR 0008). Rode `make check` na raiz para validar.
 

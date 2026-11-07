@@ -32,7 +32,7 @@ async def test_cria_instancia_somente_leitura_e_devolve_o_qr() -> None:
     assert seen["path"] == "/instance/create"
     for option in ("readMessages", "readStatus", "alwaysOnline", "syncFullHistory"):
         assert seen[option] is False
-    assert seen["webhook"]["headers"] == {"x-judite-secret": "segredo"}
+    assert seen["webhook"]["headers"] == {"x-atentio-secret": "segredo"}
 
 
 async def test_assina_so_a_chegada_de_mensagens() -> None:

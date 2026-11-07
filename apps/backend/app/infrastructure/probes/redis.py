@@ -4,7 +4,7 @@ from redis.exceptions import RedisError
 from app.domain.platform_status import Component, ComponentStatus
 
 # Contrato com o serviço de workers (ADR 0007).
-WORKER_HEARTBEAT_KEY = "judite:workers:heartbeat"
+WORKER_HEARTBEAT_KEY = "atentio:workers:heartbeat"
 
 
 class RedisProbe:

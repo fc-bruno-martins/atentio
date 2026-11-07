@@ -1,4 +1,4 @@
-# Judite
+# Atentio
 
 Novo app em construção, desenvolvido com Spec-Driven Development usando o [GitHub Spec Kit](https://github.com/github/spec-kit) (integração `claude`, skills `/speckit-*` em `.claude/skills/`).
 

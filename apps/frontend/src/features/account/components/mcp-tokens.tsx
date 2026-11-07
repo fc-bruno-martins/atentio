@@ -11,7 +11,7 @@ import { createMcpToken, fetchMcpTokens, revokeMcpToken } from '../services/acco
 const QUERY_KEY = ['mcp-tokens']
 
 function connectCommand(token: string): string {
-  return `claude mcp add --transport http judite http://localhost:8101/mcp --header "Authorization: Bearer ${token}"`
+  return `claude mcp add --transport http atentio http://localhost:8101/mcp --header "Authorization: Bearer ${token}"`
 }
 
 export function McpTokens() {

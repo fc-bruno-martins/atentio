@@ -29,7 +29,7 @@ async def _send(api: Api, instance: str, data: dict[str, Any]) -> None:
     response = await api.client.post(
         WEBHOOK,
         json={"event": "messages.upsert", "instance": instance, "data": data},
-        headers={"x-judite-secret": WEBHOOK_SECRET},
+        headers={"x-atentio-secret": WEBHOOK_SECRET},
     )
     assert response.status_code == 204, response.text
 
@@ -39,10 +39,14 @@ async def _connected(api: Api) -> tuple[Person, Person, Person, Person, str]:
     _, admin = await api.company(root, "Acme", "admin@acme.com")
     user = await api.member(admin, "user@acme.com")
     other = await api.member(admin, "outra@acme.com")
-    attempt = (await api.client.post("/api/v1/numbers/connections", headers=user.headers)).json()
+    attempt = (
+        await api.client.post("/api/v1/channels/whatsapp/attempts", headers=user.headers)
+    ).json()
     instance = next(iter(api.whatsapp.instances))
     api.whatsapp.scan(instance, "5511999999999@s.whatsapp.net")
-    await api.client.get(f"/api/v1/numbers/connections/{attempt['id']}", headers=user.headers)
+    await api.client.get(
+        f"/api/v1/channels/whatsapp/attempts/{attempt['id']}", headers=user.headers
+    )
     return root, admin, user, other, instance
 
 
@@ -119,3 +123,28 @@ async def test_nome_do_grupo_vem_na_reconciliacao(api: Api) -> None:
     [conversation] = (await api.client.get(BASE, headers=user.headers)).json()
     assert conversation["kind"] == "group"
     assert conversation["name"] == "Familia"
+
+
+async def test_filtra_por_canal_e_por_conexao(api: Api) -> None:
+    _, _, user, _, instance = await _connected(api)
+    await _send(api, instance, _data("A"))
+    [connection] = (await api.client.get("/api/v1/connections", headers=user.headers)).json()
+
+    whatsapp = await api.client.get(BASE, params={"channel": "whatsapp"}, headers=user.headers)
+    assert len(whatsapp.json()) == 1
+    assert whatsapp.json()[0]["channel"] == "whatsapp"
+    slack = await api.client.get(BASE, params={"channel": "slack"}, headers=user.headers)
+    assert slack.json() == []
+    found = await api.client.get(
+        BASE, params={"connection_id": connection["id"]}, headers=user.headers
+    )
+    assert len(found.json()) == 1
+
+
+async def test_catalogo_de_canais(api: Api) -> None:
+    _, _, user, _, _ = await _connected(api)
+    channels = (await api.client.get("/api/v1/channels", headers=user.headers)).json()
+    assert {c["id"]: c["status"] for c in channels} == {
+        "whatsapp": "available",
+        "slack": "coming_soon",
+    }

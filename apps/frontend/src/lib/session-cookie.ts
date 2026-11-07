@@ -1,4 +1,4 @@
-export const SESSION_COOKIE = 'judite_session'
+export const SESSION_COOKIE = 'atentio_session'
 export const SESSION_MAX_AGE_SECONDS = 12 * 60 * 60
 
 export const PUBLIC_PATHS = ['/login', '/esqueci-senha', '/redefinir-senha', '/convite']

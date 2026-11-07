@@ -50,7 +50,7 @@ class RedisLoginThrottle:
         self._block = block_seconds
 
     def _key(self, email: str) -> str:
-        return f"judite:auth:failures:{hashlib.sha256(email.encode()).hexdigest()}"
+        return f"atentio:auth:failures:{hashlib.sha256(email.encode()).hexdigest()}"
 
     async def is_blocked(self, email: str) -> bool:
         try:

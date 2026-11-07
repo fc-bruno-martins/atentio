@@ -1,7 +1,9 @@
-# PRD — Judite
+# PRD — Atentio
 
 > **Status:** visão do usuário + respostas de 2026-10-30. O P.O transforma este documento em
 > backlog (`docs/backlog.md`) e specs. Só é requisito o que está escrito aqui ou nas specs.
+
+> O produto se chamava Judite até 2026-11-03. Agora é multicanal: WhatsApp e Slack primeiro.
 
 ## Visão
 
@@ -34,6 +36,7 @@ via **servidor MCP**, para que o usuário identifique pontos de atenção ou de 
 
 | Q14 | Agente | **Ambos**: a plataforma analisa com o agente interno e o MCP entrega dados ao Claude (opção C, 2026-11-02). |
 | — | Conversas | Cada pessoa vê os próprios grupos e conversas na plataforma, com filtro por data, e analisa períodos ou mensagens selecionadas (2026-11-02). |
+| — | Minha Atividade | Board pessoal de tarefas com canal de origem, conversa, contexto e acompanhamento. O agente só cria tarefas quando a pessoa pede; não há criação automática (2026-11-03). |
 
 ## Perguntas em aberto
 

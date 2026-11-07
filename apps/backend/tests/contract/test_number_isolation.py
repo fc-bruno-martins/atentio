@@ -7,8 +7,9 @@ import pytest
 from tests.conftest import Api, Person
 
 pytestmark = pytest.mark.contract
-NUMBERS = "/api/v1/numbers"
-COMPANY = "/api/v1/company-numbers"
+ATTEMPTS = "/api/v1/channels/whatsapp/attempts"
+NUMBERS = "/api/v1/connections"
+COMPANY = "/api/v1/company-connections"
 
 
 @dataclass
@@ -22,10 +23,10 @@ class Scenario:
 
 async def _connect(api: Api, person: Person, jid: str) -> dict[str, str]:
     known = set(api.whatsapp.instances)
-    attempt = (await api.client.post(f"{NUMBERS}/connections", headers=person.headers)).json()
+    attempt = (await api.client.post(f"{ATTEMPTS}", headers=person.headers)).json()
     instance = next(i for i in api.whatsapp.instances if i not in known)
     api.whatsapp.scan(instance, jid)
-    await api.client.get(f"{NUMBERS}/connections/{attempt['id']}", headers=person.headers)
+    await api.client.get(f"{ATTEMPTS}/{attempt['id']}", headers=person.headers)
     [number] = (await api.client.get(NUMBERS, headers=person.headers)).json()
     return number
 
@@ -56,7 +57,7 @@ async def test_outra_pessoa_nao_desconecta_nem_sendo_admin(api: Api) -> None:
 async def test_admin_ve_so_a_propria_empresa(api: Api) -> None:
     scenario = await _scenario(api)
     mine = (await api.client.get(COMPANY, headers=scenario.admin_a.headers)).json()
-    assert [(n["phone"], n["owner_name"]) for n in mine] == [("5511999999999", "Pessoa Teste")]
+    assert [(n["account"], n["owner_name"]) for n in mine] == [("5511999999999", "Pessoa Teste")]
     assert (await api.client.get(COMPANY, headers=scenario.admin_b.headers)).json() == []
 
 
@@ -101,7 +102,8 @@ async def test_visao_da_empresa_nao_traz_mensagens(api: Api) -> None:
     [number] = (await api.client.get(COMPANY, headers=scenario.admin_a.headers)).json()
     assert set(number) == {
         "id",
-        "phone",
+        "channel",
+        "account",
         "status",
         "status_changed_at",
         "confirmed",
@@ -129,9 +131,7 @@ async def test_reconciliacao_em_banco_real_expira_e_remove(api: Api) -> None:
     await api.client.post(
         f"{NUMBERS}/{scenario.number['id']}/disconnect", headers=scenario.user_a.headers
     )
-    attempt = (
-        await api.client.post(f"{NUMBERS}/connections", headers=scenario.other_a.headers)
-    ).json()
+    attempt = (await api.client.post(f"{ATTEMPTS}", headers=scenario.other_a.headers)).json()
     await api.client.patch(
         f"/api/v1/users/{scenario.other_a.id}",
         json={"is_active": False},

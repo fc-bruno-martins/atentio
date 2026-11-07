@@ -290,7 +290,7 @@ def require_company_member(actor: ActorDep) -> Actor:
 
 def require_evolution_webhook(
     container: ContainerDep,
-    secret: Annotated[str, Header(alias="x-judite-secret")] = "",
+    secret: Annotated[str, Header(alias="x-atentio-secret")] = "",
 ) -> None:
     expected = container.settings.evolution_webhook_secret.get_secret_value()
     if not hmac.compare_digest(secret.encode(), expected.encode()):

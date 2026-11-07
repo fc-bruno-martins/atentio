@@ -9,7 +9,7 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY app app
 RUN uv sync --locked --no-dev --no-editable
 
-RUN useradd --system --uid 10001 --no-create-home judite
-USER judite
+RUN useradd --system --uid 10001 --no-create-home atentio
+USER atentio
 EXPOSE 8001
 CMD ["uvicorn", "--factory", "app.main:build_app", "--host", "0.0.0.0", "--port", "8001"]

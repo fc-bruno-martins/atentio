@@ -2,7 +2,7 @@
 
 import { LogOut } from 'lucide-react'
 import type { ComponentType, ReactNode } from 'react'
-import { FeatcodeMark } from '@/components/brand/FeatcodeMark'
+import { AtentioMark } from '@/components/brand/AtentioMark'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { cn } from '@/lib/utils'
@@ -37,8 +37,8 @@ export function AppShell({
     <div className="flex min-h-screen bg-canvas">
       <aside className="flex w-16 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:w-60">
         <div className="flex h-14 items-center gap-2 px-4">
-          <FeatcodeMark className="h-5 w-auto" />
-          <span className="hidden text-base font-semibold text-foreground md:inline">Judite</span>
+          <AtentioMark className="h-5 w-auto" />
+          <span className="hidden text-base font-semibold text-foreground md:inline">Atentio</span>
         </div>
         <nav aria-label="Menu principal" className="flex flex-col gap-1 p-2">
           {items.map((item) => {

@@ -7,7 +7,7 @@ import { Providers } from './providers'
 const interTight = Inter_Tight({ variable: '--font-inter-tight', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
-export const metadata: Metadata = { title: 'Judite' }
+export const metadata: Metadata = { title: 'Atentio' }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

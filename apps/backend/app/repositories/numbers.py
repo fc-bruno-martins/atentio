@@ -18,20 +18,21 @@ from app.domain.number import (
     NumberStatus,
     WhatsAppNumber,
 )
-from app.models import ConnectionAttemptModel, WhatsAppNumberModel
+from app.models import ChannelConnectionModel, ConnectionAttemptModel
 
-CONNECTED_INDEX = "uq_whatsapp_numbers_connected_phone"
+CONNECTED_INDEX = "uq_channel_connections_connected_account"
+WHATSAPP = "whatsapp"
 
 
-def _number(m: WhatsAppNumberModel) -> WhatsAppNumber:
+def _number(m: ChannelConnectionModel) -> WhatsAppNumber:
     return WhatsAppNumber(
         id=m.id,
         company_id=m.company_id,
         owner_user_id=m.owner_user_id,
-        phone=m.phone,
+        phone=m.external_account,
         status=NumberStatus(m.status),
         status_changed_at=m.status_changed_at,
-        instance_name=m.instance_name,
+        instance_name=m.session_ref,
         disconnect_reason=DisconnectReason(m.disconnect_reason) if m.disconnect_reason else None,
         disconnected_by=m.disconnected_by,
         last_confirmed_at=m.last_confirmed_at,
@@ -40,10 +41,10 @@ def _number(m: WhatsAppNumberModel) -> WhatsAppNumber:
     )
 
 
-def _copy_number(number: WhatsAppNumber, m: WhatsAppNumberModel) -> None:
+def _copy_number(number: WhatsAppNumber, m: ChannelConnectionModel) -> None:
     m.status = number.status.value
     m.status_changed_at = number.status_changed_at
-    m.instance_name = number.instance_name
+    m.session_ref = number.instance_name
     m.disconnect_reason = number.disconnect_reason.value if number.disconnect_reason else None
     m.disconnected_by = number.disconnected_by
     m.last_confirmed_at = number.last_confirmed_at
@@ -85,90 +86,93 @@ class SqlNumberRepository:
             raise
 
     async def add(self, number: WhatsAppNumber) -> None:
-        model = WhatsAppNumberModel(
+        model = ChannelConnectionModel(
             id=number.id,
             company_id=number.company_id,
             owner_user_id=number.owner_user_id,
-            phone=number.phone,
+            channel=WHATSAPP,
+            external_account=number.phone,
         )
         _copy_number(number, model)
         async with self._guarded():
             self._db.add(model)
 
     async def list_by_owner(self, owner_user_id: UUID) -> Sequence[WhatsAppNumber]:
-        return await self._list(WhatsAppNumberModel.owner_user_id == owner_user_id)
+        return await self._list(ChannelConnectionModel.owner_user_id == owner_user_id)
 
     async def get_by_owner_and_phone(
         self, owner_user_id: UUID, phone: str
     ) -> WhatsAppNumber | None:
         model = await self._one(
-            WhatsAppNumberModel.owner_user_id == owner_user_id, WhatsAppNumberModel.phone == phone
+            ChannelConnectionModel.owner_user_id == owner_user_id,
+            ChannelConnectionModel.external_account == phone,
         )
         return _number(model) if model else None
 
     async def count_connected(self, owner_user_id: UUID) -> int:
         count = await self._db.scalar(
             select(func.count())
-            .select_from(WhatsAppNumberModel)
+            .select_from(ChannelConnectionModel)
             .where(
-                WhatsAppNumberModel.owner_user_id == owner_user_id,
-                WhatsAppNumberModel.status == NumberStatus.CONNECTED.value,
+                ChannelConnectionModel.channel == WHATSAPP,
+                ChannelConnectionModel.owner_user_id == owner_user_id,
+                ChannelConnectionModel.status == NumberStatus.CONNECTED.value,
             )
         )
         return count or 0
 
     async def is_connected_elsewhere(self, phone: str, owner_user_id: UUID) -> bool:
         model = await self._one(
-            WhatsAppNumberModel.phone == phone,
-            WhatsAppNumberModel.status == NumberStatus.CONNECTED.value,
-            WhatsAppNumberModel.owner_user_id != owner_user_id,
+            ChannelConnectionModel.external_account == phone,
+            ChannelConnectionModel.status == NumberStatus.CONNECTED.value,
+            ChannelConnectionModel.owner_user_id != owner_user_id,
         )
         return model is not None
 
     async def get_for_owner(self, owner_user_id: UUID, number_id: UUID) -> WhatsAppNumber | None:
         model = await self._one(
-            WhatsAppNumberModel.owner_user_id == owner_user_id,
-            WhatsAppNumberModel.id == number_id,
+            ChannelConnectionModel.owner_user_id == owner_user_id,
+            ChannelConnectionModel.id == number_id,
         )
         return _number(model) if model else None
 
     async def get_in_company(self, company_id: UUID, number_id: UUID) -> WhatsAppNumber | None:
         model = await self._one(
-            WhatsAppNumberModel.company_id == company_id, WhatsAppNumberModel.id == number_id
+            ChannelConnectionModel.company_id == company_id, ChannelConnectionModel.id == number_id
         )
         return _number(model) if model else None
 
     async def get_by_instance(self, instance_name: str) -> WhatsAppNumber | None:
-        model = await self._one(WhatsAppNumberModel.instance_name == instance_name)
+        model = await self._one(ChannelConnectionModel.session_ref == instance_name)
         return _number(model) if model else None
 
     async def list_by_company(self, company_id: UUID) -> Sequence[WhatsAppNumber]:
-        return await self._list(WhatsAppNumberModel.company_id == company_id)
+        return await self._list(ChannelConnectionModel.company_id == company_id)
 
     async def list_connected(self) -> Sequence[WhatsAppNumber]:
-        return await self._list(WhatsAppNumberModel.status == NumberStatus.CONNECTED.value)
+        return await self._list(ChannelConnectionModel.status == NumberStatus.CONNECTED.value)
 
     async def list_without_message_events(self) -> Sequence[WhatsAppNumber]:
         return await self._list(
-            WhatsAppNumberModel.status == NumberStatus.CONNECTED.value,
-            WhatsAppNumberModel.message_events_enabled.is_(False),
+            ChannelConnectionModel.status == NumberStatus.CONNECTED.value,
+            ChannelConnectionModel.message_events_enabled.is_(False),
         )
 
     async def list_with_stale_instance(self) -> Sequence[WhatsAppNumber]:
         return await self._list(
-            WhatsAppNumberModel.status == NumberStatus.DISCONNECTED.value,
-            WhatsAppNumberModel.instance_name.is_not(None),
+            ChannelConnectionModel.status == NumberStatus.DISCONNECTED.value,
+            ChannelConnectionModel.session_ref.is_not(None),
         )
 
     async def disconnect_for_user(
         self, user_id: UUID, reason: DisconnectReason, now: datetime, by: UUID | None
     ) -> None:
-        await self._disconnect(WhatsAppNumberModel.owner_user_id == user_id, reason, now, by)
+        await self._disconnect(ChannelConnectionModel.owner_user_id == user_id, reason, now, by)
 
     async def disconnect_for_company(
         self, company_id: UUID, reason: DisconnectReason, now: datetime
     ) -> None:
-        await self._disconnect(WhatsAppNumberModel.company_id == company_id, reason, now, None)
+        await self._disconnect(ChannelConnectionModel.company_id == company_id, reason, now, None)
 
     async def _disconnect(
         self,
@@ -178,8 +182,12 @@ class SqlNumberRepository:
         by: UUID | None,
     ) -> None:
         await self._db.execute(
-            update(WhatsAppNumberModel)
-            .where(scope, WhatsAppNumberModel.status == NumberStatus.CONNECTED.value)
+            update(ChannelConnectionModel)
+            .where(
+                scope,
+                ChannelConnectionModel.channel == WHATSAPP,
+                ChannelConnectionModel.status == NumberStatus.CONNECTED.value,
+            )
             .values(
                 status=NumberStatus.DISCONNECTED.value,
                 status_changed_at=now,
@@ -191,17 +199,23 @@ class SqlNumberRepository:
 
     async def _list(self, *conditions: ColumnElement[bool]) -> Sequence[WhatsAppNumber]:
         rows = await self._db.scalars(
-            select(WhatsAppNumberModel).where(*conditions).order_by(WhatsAppNumberModel.created_at)
+            select(ChannelConnectionModel)
+            .where(*conditions)
+            .order_by(ChannelConnectionModel.created_at)
         )
         return [_number(m) for m in rows]
 
     async def save(self, number: WhatsAppNumber) -> None:
         async with self._guarded():
-            model = await self._db.get_one(WhatsAppNumberModel, number.id)
+            model = await self._db.get_one(ChannelConnectionModel, number.id)
             _copy_number(number, model)
 
-    async def _one(self, *conditions: ColumnElement[bool]) -> WhatsAppNumberModel | None:
-        return await self._db.scalar(select(WhatsAppNumberModel).where(*conditions))
+    async def _one(self, *conditions: ColumnElement[bool]) -> ChannelConnectionModel | None:
+        return await self._db.scalar(
+            select(ChannelConnectionModel).where(
+                ChannelConnectionModel.channel == WHATSAPP, *conditions
+            )
+        )
 
 
 class SqlAttemptRepository:

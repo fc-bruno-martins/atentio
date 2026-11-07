@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { FeatcodeMark } from '@/components/brand/FeatcodeMark'
+import { AtentioMark } from '@/components/brand/AtentioMark'
 
 /**
  * Casca das telas públicas (login, reset de senha): painel de marca à esquerda
@@ -54,9 +54,9 @@ function BrandPanel() {
       <BrandShape />
 
       <div className="relative z-10 flex items-center gap-2.5">
-        <FeatcodeMark className="h-[22px] w-auto" />
+        <AtentioMark className="h-[22px] w-auto" />
         <span className="text-lg font-semibold leading-none tracking-tight text-white">
-          Featcode
+          Atentio
         </span>
       </div>
 
@@ -74,7 +74,7 @@ function BrandPanel() {
       </div>
 
       <p className="relative z-10 text-xs text-[#6B7277]">
-        © {new Date().getFullYear()} Featcode Technology
+        © {new Date().getFullYear()} Atentio
       </p>
     </div>
   )
@@ -95,9 +95,9 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
         <div className="flex w-full max-w-sm flex-col gap-6">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <FeatcodeMark className="h-7 w-auto" />
+              <AtentioMark className="h-7 w-auto" />
               <span className="text-xl font-semibold leading-none tracking-tight text-foreground">
-                Judite
+                Atentio
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">
@@ -108,9 +108,6 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
 
           {children}
 
-          <p className="text-center text-xs text-muted-foreground">
-            Uma plataforma <span className="font-medium">Featcode</span>.
-          </p>
         </div>
       </div>
     </div>

@@ -4,10 +4,11 @@ from datetime import datetime
 
 from app.domain.company import Company
 from app.domain.invitation import Invitation
+from app.domain.message import WHATSAPP
 from app.domain.number import WhatsAppNumber
 from app.domain.user import User
 from app.schemas.identity import CompanyOut, CompanyRef, InvitationOut, Me, UserOut
-from app.schemas.numbers import AttemptOut, CompanyNumberOut, NumberOut
+from app.schemas.numbers import AttemptOut, CompanyConnectionOut, ConnectionOut
 from app.services.account import Profile
 from app.services.numbers import AttemptView, CompanyNumber
 
@@ -47,10 +48,11 @@ def invitation_out(invitation: Invitation) -> InvitationOut:
     )
 
 
-def number_out(number: WhatsAppNumber, now: datetime) -> NumberOut:
-    return NumberOut(
+def connection_out(number: WhatsAppNumber, now: datetime) -> ConnectionOut:
+    return ConnectionOut(
         id=number.id,
-        phone=number.phone,
+        channel=WHATSAPP,
+        account=number.phone,
         status=number.status.value,
         status_changed_at=number.status_changed_at,
         confirmed=number.is_confirmed(now),
@@ -58,9 +60,9 @@ def number_out(number: WhatsAppNumber, now: datetime) -> NumberOut:
     )
 
 
-def company_number_out(item: CompanyNumber, now: datetime) -> CompanyNumberOut:
-    return CompanyNumberOut(
-        **number_out(item.number, now).model_dump(),
+def company_connection_out(item: CompanyNumber, now: datetime) -> CompanyConnectionOut:
+    return CompanyConnectionOut(
+        **connection_out(item.number, now).model_dump(),
         owner_id=item.owner.id,
         owner_name=item.owner.name,
     )

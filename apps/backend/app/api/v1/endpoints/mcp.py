@@ -52,9 +52,9 @@ async def revoke_token(
 
 @router.get("/conversations")
 async def list_conversations(
-    actor: McpActorDep, service: MessageServiceDep
+    actor: McpActorDep, service: MessageServiceDep, channel: str | None = None
 ) -> list[ConversationOut]:
-    return [conversation_out(c) for c in await service.list_conversations(actor)]
+    return [conversation_out(c) for c in await service.list_conversations(actor, channel=channel)]
 
 
 @router.get("/conversations/{conversation_id}/messages")

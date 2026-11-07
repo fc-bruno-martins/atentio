@@ -12,7 +12,8 @@ const MESSAGES = 'GET /api/v1/conversations/c1/messages'
 
 const direct = {
   id: 'c1',
-  number_id: 'n1',
+  connection_id: 'n1',
+  channel: 'whatsapp',
   kind: 'direct',
   name: 'Ana',
   contact: '5511999999999',
@@ -61,7 +62,7 @@ it('abre a conversa e mostra as mensagens', async () => {
     [MESSAGES]: { body: { conversation: direct, messages: [message] } },
   })
   renderWithQuery(<ConversationsPage />)
-  await userEvent.click(await screen.findByRole('button', { name: 'Ana' }))
+  await userEvent.click(await screen.findByRole('button', { name: /Ana/ }))
   expect(await screen.findByText('bom dia')).toBeInTheDocument()
 })
 
@@ -74,7 +75,7 @@ it('identifica mídia sem arquivo', async () => {
     [MESSAGES]: { body: { conversation: direct, messages: [audio] } },
   })
   renderWithQuery(<ConversationsPage />)
-  await userEvent.click(await screen.findByRole('button', { name: 'Ana' }))
+  await userEvent.click(await screen.findByRole('button', { name: /Ana/ }))
   expect(await screen.findByText('Áudio')).toBeInTheDocument()
 })
 
@@ -87,7 +88,7 @@ it('filtra pelo dia de hoje', async () => {
   })
   const fn = vi.mocked(fetch)
   renderWithQuery(<ConversationsPage />)
-  await userEvent.click(await screen.findByRole('button', { name: 'Ana' }))
+  await userEvent.click(await screen.findByRole('button', { name: /Ana/ }))
   await userEvent.click(await screen.findByRole('button', { name: 'Hoje' }))
   await waitFor(() =>
     expect(fn.mock.calls.some(([path]) => String(path).includes('since='))).toBe(true),
@@ -118,7 +119,7 @@ it('analisa só as mensagens selecionadas', async () => {
     },
   })
   renderWithQuery(<ConversationsPage />)
-  await userEvent.click(await screen.findByRole('button', { name: 'Ana' }))
+  await userEvent.click(await screen.findByRole('button', { name: /Ana/ }))
   await userEvent.click(await screen.findByRole('checkbox'))
   expect(screen.getByText('1 mensagem selecionada')).toBeInTheDocument()
   await userEvent.type(screen.getByLabelText('Prompt'), 'Resuma')
@@ -126,4 +127,51 @@ it('analisa só as mensagens selecionadas', async () => {
   expect(await screen.findByText('Resumo pronto')).toBeInTheDocument()
   const call = calls.find((item) => item.key === 'POST /api/v1/analyses')
   expect(call?.body).toMatchObject({ message_ids: ['m1'], prompt_text: 'Resuma' })
+})
+
+it('mostra o canal da conversa', async () => {
+  mockApi({ [LIST]: { body: [direct] } })
+  renderWithQuery(<ConversationsPage />)
+  expect(await screen.findByText('WhatsApp')).toBeInTheDocument()
+})
+
+it('filtra por canal na caixa única', async () => {
+  mockApi({
+    [LIST]: { body: [direct] },
+    'GET /api/v1/channels': {
+      body: [{ id: 'whatsapp', name: 'WhatsApp', status: 'available' }],
+    },
+    'GET /api/v1/connections': { body: [] },
+  })
+  renderWithQuery(<ConversationsPage />)
+  await userEvent.click(await screen.findByRole('button', { name: 'WhatsApp' }))
+  await waitFor(() =>
+    expect(vi.mocked(fetch).mock.calls.some(([p]) => String(p).includes('channel=whatsapp'))).toBe(
+      true,
+    ),
+  )
+})
+
+it('filtra por conta quando há mais de uma', async () => {
+  const account = {
+    id: 'n1',
+    channel: 'whatsapp',
+    account: '5511',
+    status: 'connected',
+    status_changed_at: '2026-11-02T12:00:00Z',
+    confirmed: true,
+    disconnect_reason: null,
+  }
+  mockApi({
+    [LIST]: { body: [direct] },
+    'GET /api/v1/channels': { body: [] },
+    'GET /api/v1/connections': { body: [account, { ...account, id: 'n2', account: '5522' }] },
+  })
+  renderWithQuery(<ConversationsPage />)
+  await userEvent.selectOptions(await screen.findByLabelText('Filtrar por conta'), 'n2')
+  await waitFor(() =>
+    expect(vi.mocked(fetch).mock.calls.some(([p]) => String(p).includes('connection_id=n2'))).toBe(
+      true,
+    ),
+  )
 })

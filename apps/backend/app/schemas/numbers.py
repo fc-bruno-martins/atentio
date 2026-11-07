@@ -5,16 +5,23 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class NumberOut(BaseModel):
+class ChannelOut(BaseModel):
+    id: str
+    name: str
+    status: Literal["available", "coming_soon"]
+
+
+class ConnectionOut(BaseModel):
     id: UUID
-    phone: str
+    channel: str
+    account: str
     status: Literal["connected", "disconnected"]
     status_changed_at: datetime
     confirmed: bool
     disconnect_reason: str | None
 
 
-class CompanyNumberOut(NumberOut):
+class CompanyConnectionOut(ConnectionOut):
     owner_id: UUID
     owner_name: str
 

@@ -23,7 +23,7 @@ describe('forwardToBackend', () => {
     const backend = mockBackend(Response.json({ ok: true }))
 
     await forwardToBackend(
-      request('/api/v1/me?x=1', { headers: { cookie: 'a=1; judite_session=abc' } }),
+      request('/api/v1/me?x=1', { headers: { cookie: 'a=1; atentio_session=abc' } }),
     )
 
     const [url, init] = backend.mock.calls[0] as [string, RequestInit]
@@ -39,7 +39,7 @@ describe('forwardToBackend', () => {
     )
 
     const cookie = response.headers.get('set-cookie') ?? ''
-    expect(cookie).toContain('judite_session=segredo')
+    expect(cookie).toContain('atentio_session=segredo')
     expect(cookie).toContain('HttpOnly')
     expect(cookie).toContain('SameSite=Lax')
     expect(await response.text()).not.toContain('segredo')
@@ -71,14 +71,14 @@ describe('forwardToBackend', () => {
     const logout = await forwardToBackend(
       request('/api/v1/auth/logout', {
         method: 'POST',
-        headers: { cookie: 'judite_session=abc' },
+        headers: { cookie: 'atentio_session=abc' },
       }),
     )
     expect(logout.headers.get('set-cookie')).toContain('Max-Age=0')
 
     mockBackend(Response.json({}, { status: 401 }))
     const expired = await forwardToBackend(
-      request('/api/v1/me', { headers: { cookie: 'judite_session=abc' } }),
+      request('/api/v1/me', { headers: { cookie: 'atentio_session=abc' } }),
     )
     expect(expired.headers.get('set-cookie')).toContain('Max-Age=0')
   })

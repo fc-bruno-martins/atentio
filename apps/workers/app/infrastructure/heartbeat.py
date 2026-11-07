@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from redis.asyncio import Redis
 
-WORKER_HEARTBEAT_KEY = "judite:workers:heartbeat"
+WORKER_HEARTBEAT_KEY = "atentio:workers:heartbeat"
 
 
 class RedisHeartbeatPublisher:

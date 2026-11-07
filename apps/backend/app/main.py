@@ -19,7 +19,7 @@ def create_app(container: Container) -> FastAPI:
         yield
         await container.close()
 
-    app = FastAPI(title="Judite API", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="Atentio API", version="0.2.0", lifespan=lifespan)
     app.state.container = container
     register_error_handlers(app)
     app.include_router(health.router)

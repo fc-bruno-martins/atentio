@@ -67,7 +67,7 @@ async def container(postgres_url: str, redis_url: str) -> AsyncIterator[Containe
         mcp_url="http://mcp.invalid",
         public_app_url="http://app.test",
         smtp_host="smtp.invalid",
-        smtp_from="judite@test",
+        smtp_from="atentio@test",
     )
     built = build_container(settings)
     built.email = FakeEmail()
@@ -78,7 +78,7 @@ async def container(postgres_url: str, redis_url: str) -> AsyncIterator[Containe
             text(
                 "TRUNCATE api_tokens, analyses, analysis_prompts, user_ai_settings, "
                 "company_settings, "
-                "messages, conversations, connection_attempts, whatsapp_numbers, "
+                "messages, conversations, connection_attempts, channel_connections, "
                 "password_resets, sessions, invitations, users, companies CASCADE"
             )
         )
@@ -124,7 +124,7 @@ class Api:
         body = response.json()
         return Person(body["user"]["id"], email, {"Authorization": f"Bearer {body['token']}"})
 
-    async def platform_admin(self, email: str = "root@judite.com") -> Person:
+    async def platform_admin(self, email: str = "root@atentio.com") -> Person:
         async with session_scope(self.container.session_factory) as db:
             await SqlUserRepository(db).add(
                 User.create(

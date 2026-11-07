@@ -15,12 +15,13 @@ from app.models.identity import (
     UserModel,
 )
 from app.models.messages import ConversationModel, MessageModel
-from app.models.numbers import ConnectionAttemptModel, WhatsAppNumberModel
+from app.models.numbers import ChannelConnectionModel, ConnectionAttemptModel
 
 __all__ = [
     "AnalysisModelRow",
     "AnalysisPromptModel",
     "ApiTokenModel",
+    "ChannelConnectionModel",
     "CompanyModel",
     "CompanySettingsModel",
     "ConnectionAttemptModel",
@@ -31,5 +32,4 @@ __all__ = [
     "SessionModel",
     "UserAiSettingsModel",
     "UserModel",
-    "WhatsAppNumberModel",
 ]

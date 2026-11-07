@@ -15,10 +15,14 @@ async def _world(api: Api) -> tuple[Person, Person, Person, str]:
     root = await api.platform_admin()
     _, admin = await api.company(root, "Acme", "admin@acme.com")
     user = await api.member(admin, "user@acme.com")
-    attempt = (await api.client.post("/api/v1/numbers/connections", headers=user.headers)).json()
+    attempt = (
+        await api.client.post("/api/v1/channels/whatsapp/attempts", headers=user.headers)
+    ).json()
     instance = next(iter(api.whatsapp.instances))
     api.whatsapp.scan(instance, "5511999999999@s.whatsapp.net")
-    await api.client.get(f"/api/v1/numbers/connections/{attempt['id']}", headers=user.headers)
+    await api.client.get(
+        f"/api/v1/channels/whatsapp/attempts/{attempt['id']}", headers=user.headers
+    )
     data = {
         "key": {"remoteJid": "5511@s.whatsapp.net", "fromMe": False, "id": "A"},
         "pushName": "Ana",
@@ -29,7 +33,7 @@ async def _world(api: Api) -> tuple[Person, Person, Person, str]:
     await api.client.post(
         "/api/v1/internal/webhooks/evolution",
         json={"event": "messages.upsert", "instance": instance, "data": data},
-        headers={"x-judite-secret": WEBHOOK_SECRET},
+        headers={"x-atentio-secret": WEBHOOK_SECRET},
     )
     created = await api.client.post(TOKENS, json={"name": "Claude"}, headers=user.headers)
     assert created.status_code == 201

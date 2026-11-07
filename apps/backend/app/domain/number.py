@@ -168,7 +168,7 @@ class ConnectionAttempt:
             id=uuid4(),
             company_id=company_id,
             user_id=user_id,
-            instance_name=f"judite-{uuid4().hex}",
+            instance_name=f"atentio-{uuid4().hex}",
             expires_at=now + ttl,
         )
 

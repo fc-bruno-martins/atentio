@@ -5,16 +5,19 @@ import { MessagesSquare, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { FormError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AnalyzePanel } from '@/features/analyses'
-import { formatDate } from '@/features/shared'
+import { channelLabel, formatAccount, formatDate } from '@/features/shared'
 import { cn } from '@/lib/utils'
 import {
   fetchConversations,
+  fetchInboxChannels,
+  fetchInboxConnections,
   fetchMessages,
   periodRange,
   type Conversation,
@@ -101,7 +104,10 @@ function Messages({ conversation }: { conversation: Conversation }) {
 
   return (
     <Card className="flex min-w-0 flex-1 flex-col gap-4 p-4">
-      <h2 className="font-semibold">{title(conversation)}</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="font-semibold">{title(conversation)}</h2>
+        <Badge variant="secondary">{channelLabel(conversation.channel)}</Badge>
+      </div>
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="from">De</Label>
@@ -145,11 +151,21 @@ function Messages({ conversation }: { conversation: Conversation }) {
 export function ConversationsPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [channel, setChannel] = useState('')
+  const [connectionId, setConnectionId] = useState('')
   const { data, error } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: fetchConversations,
+    queryKey: ['conversations', channel, connectionId],
+    queryFn: () => fetchConversations({ channel, connectionId }),
     refetchInterval: POLL_INTERVAL_MS,
   })
+  const channels = useQuery({ queryKey: ['channels'], queryFn: fetchInboxChannels })
+  const connections = useQuery({ queryKey: ['connections'], queryFn: fetchInboxConnections })
+  const accounts = (connections.data ?? []).filter((c) => !channel || c.channel === channel)
+  const chooseChannel = (next: string) => {
+    setChannel(next)
+    setConnectionId('')
+    setSelected(null)
+  }
   const visible = useMemo(
     () =>
       (data ?? []).filter((conversation) =>
@@ -163,15 +179,43 @@ export function ConversationsPage() {
     <div className="mx-auto flex max-w-6xl flex-col gap-4">
       <PageHeader
         title="Conversas"
-        subtitle="Grupos e conversas dos seus números, desde o início da captura."
+        subtitle="Todas as suas conversas, de todos os canais, desde o início da captura."
         icon={MessagesSquare}
       />
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por canal">
+        {[{ id: '', name: 'Todos' }, ...(channels.data ?? [])].map((item) => (
+          <Button
+            key={item.id || 'todos'}
+            size="sm"
+            variant={channel === item.id ? 'default' : 'outline'}
+            aria-pressed={channel === item.id}
+            onClick={() => chooseChannel(item.id)}
+          >
+            {item.name}
+          </Button>
+        ))}
+        {accounts.length > 1 && (
+          <select
+            aria-label="Filtrar por conta"
+            value={connectionId}
+            onChange={(event) => setConnectionId(event.target.value)}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value="">Todas as contas</option>
+            {accounts.map((connection) => (
+              <option key={connection.id} value={connection.id}>
+                {channelLabel(connection.channel)} · {formatAccount(connection)}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
       <FormError message={error?.message} />
       {data?.length === 0 && (
         <EmptyState
           icon={MessagesSquare}
           title="Nenhuma conversa capturada"
-          subtitle="As mensagens aparecem aqui assim que chegarem a um número conectado."
+          subtitle="As mensagens aparecem aqui assim que chegarem a uma conta conectada."
         />
       )}
       {data && data.length > 0 && (
@@ -198,6 +242,7 @@ export function ConversationsPage() {
                       <Users className="size-4 shrink-0" aria-label="Grupo" />
                     )}
                     <span className="min-w-0 flex-1 truncate">{title(conversation)}</span>
+                    <Badge variant="secondary">{channelLabel(conversation.channel)}</Badge>
                   </button>
                 </li>
               ))}

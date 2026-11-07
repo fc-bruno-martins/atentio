@@ -21,10 +21,10 @@ from app.domain.message import (
 from app.domain.number import WhatsAppNumber
 from app.models import (
     AnalysisModelRow,
+    ChannelConnectionModel,
     CompanySettingsModel,
     ConversationModel,
     MessageModel,
-    WhatsAppNumberModel,
 )
 
 MAX_CONVERSATIONS = 200
@@ -33,9 +33,10 @@ MAX_CONVERSATIONS = 200
 def _conversation(m: ConversationModel) -> Conversation:
     return Conversation(
         id=m.id,
-        number_id=m.number_id,
-        remote_jid=m.remote_jid,
+        number_id=m.connection_id,
+        remote_jid=m.external_ref,
         kind=ConversationKind(m.kind),
+        channel=m.channel,
         name=m.name,
         last_message_at=m.last_message_at,
         owner_user_id=m.owner_user_id,
@@ -63,15 +64,15 @@ class SqlMessageRepository:
             id=uuid4(),
             company_id=number.company_id,
             owner_user_id=number.owner_user_id,
-            number_id=number.id,
-            remote_jid=message.remote_jid,
+            connection_id=number.id,
+            external_ref=message.remote_jid,
             kind=message.kind.value,
             name=message.contact_name,
             last_message_at=message.sent_at,
         )
         conversation_id = await self._db.scalar(
             conversation.on_conflict_do_update(
-                constraint="uq_conversations_number_jid",
+                constraint="uq_conversations_connection_ref",
                 set_={
                     "last_message_at": func.greatest(
                         ConversationModel.last_message_at, conversation.excluded.last_message_at
@@ -86,27 +87,35 @@ class SqlMessageRepository:
                 id=uuid4(),
                 company_id=number.company_id,
                 owner_user_id=number.owner_user_id,
-                number_id=number.id,
+                connection_id=number.id,
                 conversation_id=conversation_id,
                 external_id=message.external_id,
                 from_me=message.from_me,
-                sender_jid=message.sender_jid,
+                sender_ref=message.sender_jid,
                 sender_name=message.sender_name,
                 type=message.type.value,
                 text=message.text,
                 sent_at=message.sent_at,
             )
-            .on_conflict_do_nothing(constraint="uq_messages_number_external")
+            .on_conflict_do_nothing(constraint="uq_messages_connection_external")
             .returning(MessageModel.id)
         )
         return stored is not None
 
-    async def list_conversations(self, owner_user_id: UUID) -> Sequence[Conversation]:
+    async def list_conversations(
+        self,
+        owner_user_id: UUID,
+        *,
+        channel: str | None = None,
+        connection_id: UUID | None = None,
+    ) -> Sequence[Conversation]:
+        query = select(ConversationModel).where(ConversationModel.owner_user_id == owner_user_id)
+        if channel is not None:
+            query = query.where(ConversationModel.channel == channel)
+        if connection_id is not None:
+            query = query.where(ConversationModel.connection_id == connection_id)
         rows = await self._db.scalars(
-            select(ConversationModel)
-            .where(ConversationModel.owner_user_id == owner_user_id)
-            .order_by(ConversationModel.last_message_at.desc())
-            .limit(MAX_CONVERSATIONS)
+            query.order_by(ConversationModel.last_message_at.desc()).limit(MAX_CONVERSATIONS)
         )
         return [_conversation(m) for m in rows]
 
@@ -141,15 +150,18 @@ class SqlMessageRepository:
         rows = await self._db.execute(
             select(
                 ConversationModel.id,
-                WhatsAppNumberModel.instance_name,
-                ConversationModel.remote_jid,
+                ChannelConnectionModel.session_ref,
+                ConversationModel.external_ref,
             )
-            .join(WhatsAppNumberModel, WhatsAppNumberModel.id == ConversationModel.number_id)
+            .join(
+                ChannelConnectionModel,
+                ChannelConnectionModel.id == ConversationModel.connection_id,
+            )
             .where(
                 ConversationModel.kind == ConversationKind.GROUP.value,
                 ConversationModel.name.is_(None),
-                WhatsAppNumberModel.instance_name.is_not(None),
-                WhatsAppNumberModel.status == "connected",
+                ChannelConnectionModel.session_ref.is_not(None),
+                ChannelConnectionModel.status == "connected",
             )
             .limit(limit)
         )

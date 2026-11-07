@@ -1,8 +1,10 @@
 import { apiFetch } from '@/lib/api'
+import type { Connection } from '@/features/shared'
 
 export interface Conversation {
   id: string
-  number_id: string
+  connection_id: string
+  channel: string
   kind: 'direct' | 'group'
   name: string | null
   contact: string
@@ -32,7 +34,22 @@ export interface Period {
 
 const BASE = '/api/v1/conversations'
 
-export const fetchConversations = () => apiFetch<Conversation[]>(BASE)
+export interface InboxFilter {
+  channel: string
+  connectionId: string
+}
+
+export function fetchConversations({ channel, connectionId }: InboxFilter) {
+  const params = new URLSearchParams()
+  if (channel) params.set('channel', channel)
+  if (connectionId) params.set('connection_id', connectionId)
+  const query = params.toString()
+  return apiFetch<Conversation[]>(query ? `${BASE}?${query}` : BASE)
+}
+
+export const fetchInboxChannels = () =>
+  apiFetch<{ id: string; name: string; status: string }[]>('/api/v1/channels')
+export const fetchInboxConnections = () => apiFetch<Connection[]>('/api/v1/connections')
 
 /** Datas no fuso da pessoa: o dia final entra inteiro. */
 export function periodRange({ from, to }: Period): { since?: string; until?: string } {

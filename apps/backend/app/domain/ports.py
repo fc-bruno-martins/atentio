@@ -160,7 +160,13 @@ class WhatsAppGateway(Protocol):
 
 class MessageRepository(Protocol):
     async def store(self, number: WhatsAppNumber, message: IncomingMessage) -> bool: ...
-    async def list_conversations(self, owner_user_id: UUID) -> Sequence[Conversation]: ...
+    async def list_conversations(
+        self,
+        owner_user_id: UUID,
+        *,
+        channel: str | None = None,
+        connection_id: UUID | None = None,
+    ) -> Sequence[Conversation]: ...
     async def get_conversation(
         self, owner_user_id: UUID, conversation_id: UUID
     ) -> Conversation | None: ...

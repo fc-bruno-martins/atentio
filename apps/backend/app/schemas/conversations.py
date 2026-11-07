@@ -7,7 +7,8 @@ from pydantic import BaseModel
 
 class ConversationOut(BaseModel):
     id: UUID
-    number_id: UUID
+    connection_id: UUID
+    channel: str
     kind: Literal["direct", "group"]
     name: str | None
     contact: str

@@ -6,6 +6,7 @@ from enum import StrEnum
 from uuid import UUID
 
 GROUP_SUFFIX = "@g.us"
+WHATSAPP = "whatsapp"
 
 
 class ConversationKind(StrEnum):
@@ -57,6 +58,7 @@ class Conversation:
     name: str | None
     last_message_at: datetime
     owner_user_id: UUID
+    channel: str = WHATSAPP
 
 
 @dataclass(frozen=True)

@@ -69,6 +69,45 @@ wheels = [
 ]
 
 [[package]]
+name = "atentio-mcp"
+version = "0.2.0"
+source = { editable = "." }
+dependencies = [
+    { name = "httpx" },
+    { name = "mcp" },
+    { name = "pydantic-settings" },
+    { name = "structlog" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "import-linter" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28,<0.29" },
+    { name = "mcp", specifier = ">=2.3,<2.4" },
+    { name = "pydantic-settings", specifier = ">=2.16,<2.17" },
+    { name = "structlog", specifier = ">=26.1,<27" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.54,<0.55" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "import-linter", specifier = ">=2.15,<3" },
+    { name = "mypy", specifier = ">=2.4,<3" },
+    { name = "pytest", specifier = ">=9.2,<10" },
+    { name = "pytest-asyncio", specifier = ">=1.4,<2" },
+    { name = "ruff", specifier = ">=0.17,<0.18" },
+]
+
+[[package]]
 name = "attrs"
 version = "26.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -362,45 +401,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa6d1095e7cc5569bebf04342ee146178e2d36600708b/jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d", size = 32855, upload-time = "2025-09-08T01:34:59.186Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
-]
-
-[[package]]
-name = "judite-mcp"
-version = "0.2.0"
-source = { editable = "." }
-dependencies = [
-    { name = "httpx" },
-    { name = "mcp" },
-    { name = "pydantic-settings" },
-    { name = "structlog" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "import-linter" },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28,<0.29" },
-    { name = "mcp", specifier = ">=2.3,<2.4" },
-    { name = "pydantic-settings", specifier = ">=2.16,<2.17" },
-    { name = "structlog", specifier = ">=26.1,<27" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.54,<0.55" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "import-linter", specifier = ">=2.15,<3" },
-    { name = "mypy", specifier = ">=2.4,<3" },
-    { name = "pytest", specifier = ">=9.2,<10" },
-    { name = "pytest-asyncio", specifier = ">=1.4,<2" },
-    { name = "ruff", specifier = ">=0.17,<0.18" },
 ]
 
 [[package]]

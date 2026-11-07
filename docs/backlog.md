@@ -1,4 +1,4 @@
-# Backlog — Judite
+# Backlog — Atentio
 
 Ordem por dependência e valor. Cada item vira uma feature `specs/NNN-nome/`.
 
@@ -14,3 +14,4 @@ Ordem por dependência e valor. Cada item vira uma feature `specs/NNN-nome/`.
 | 007 | **MCP remoto autenticado** — feito localmente com token pessoal e tools de leitura (Claude Code e Desktop); falta OAuth e HTTPS para web e celular | Perguntar ao Claude | 002, 004 | Q17 |
 | 008 | **Agente interno** — OpenRouter com modelo, effort e prompt por usuário (admin); memória/resumo (mem0 ou similar) | Respostas agênticas | 007 | Q14 |
 | 009 | **Deploy na VPS** — proxy reverso com TLS, domínio, backups e CI (obrigatório pela constitution; requer remote) | Produção | 001 | Q17 |
+| 010 | **Minha Atividade** — board pessoal de tarefas criadas a pedido da pessoa, com canal, conversa, contexto e acompanhamento | Nada fica sem dono | 004b, 008 | Tarefa sobrevive ao expurgo? |

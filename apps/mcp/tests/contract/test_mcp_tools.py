@@ -23,7 +23,7 @@ class FakeReader:
     def __init__(self) -> None:
         self.tokens: list[str] = []
 
-    async def list_conversations(self, token: str) -> Any:
+    async def list_conversations(self, token: str, channel: str | None) -> Any:
         self.tokens.append(token)
         return [{"id": "c1", "name": "Ana"}]
 
@@ -110,7 +110,7 @@ async def test_cliente_repassa_filtros_e_ignora_vazios() -> None:
 )
 async def test_erros_viram_mensagens_seguras(status: int, message: str) -> None:
     with pytest.raises(BackendError, match=message):
-        await _backend(lambda _: httpx.Response(status, json={})).list_conversations("t")
+        await _backend(lambda _: httpx.Response(status, json={})).list_conversations("t", None)
 
 
 async def test_backend_fora() -> None:
@@ -118,4 +118,4 @@ async def test_backend_fora() -> None:
         raise httpx.ConnectError("sem rede")
 
     with pytest.raises(BackendError, match="indisponível"):
-        await _backend(handler).list_conversations("t")
+        await _backend(handler).list_conversations("t", None)

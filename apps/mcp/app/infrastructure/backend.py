@@ -19,8 +19,8 @@ class BackendMessageReader:
         self._client = client
         self._base = f"{base_url.rstrip('/')}/api/v1/mcp"
 
-    async def list_conversations(self, token: str) -> Any:
-        return await self._get(token, "/conversations", {})
+    async def list_conversations(self, token: str, channel: str | None) -> Any:
+        return await self._get(token, "/conversations", {"channel": channel})
 
     async def read_messages(
         self, token: str, conversation_id: str, since: str | None, until: str | None, limit: int

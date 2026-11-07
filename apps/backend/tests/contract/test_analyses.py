@@ -22,10 +22,14 @@ async def _world(api: Api) -> tuple[Person, Person, Person, Person, str]:
     user = await api.member(admin, "user@acme.com")
     other = await api.member(admin, "outra@acme.com")
     _, foreign = await api.company(root, "Beta", "admin@beta.com")
-    attempt = (await api.client.post("/api/v1/numbers/connections", headers=user.headers)).json()
+    attempt = (
+        await api.client.post("/api/v1/channels/whatsapp/attempts", headers=user.headers)
+    ).json()
     instance = next(iter(api.whatsapp.instances))
     api.whatsapp.scan(instance, "5511999999999@s.whatsapp.net")
-    await api.client.get(f"/api/v1/numbers/connections/{attempt['id']}", headers=user.headers)
+    await api.client.get(
+        f"/api/v1/channels/whatsapp/attempts/{attempt['id']}", headers=user.headers
+    )
     await _message(api, instance, "A")
     [conversation] = (await api.client.get("/api/v1/conversations", headers=user.headers)).json()
     return admin, user, other, foreign, conversation["id"]
@@ -42,7 +46,7 @@ async def _message(api: Api, instance: str, external_id: str, age_days: float = 
     await api.client.post(
         "/api/v1/internal/webhooks/evolution",
         json={"event": "messages.upsert", "instance": instance, "data": data},
-        headers={"x-judite-secret": WEBHOOK_SECRET},
+        headers={"x-atentio-secret": WEBHOOK_SECRET},
     )
 
 

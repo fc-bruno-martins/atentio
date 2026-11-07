@@ -1,4 +1,4 @@
-name: judite
+name: atentio
 
 x-python-env: &python-env
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
@@ -8,9 +8,9 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-judite}
+      POSTGRES_USER: ${POSTGRES_USER:-atentio}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
-      POSTGRES_DB: ${POSTGRES_DB:-judite}
+      POSTGRES_DB: ${POSTGRES_DB:-atentio}
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -43,8 +43,8 @@ services:
       SERVER_PORT: "8080"
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:?defina EVOLUTION_API_KEY no .env}
       DATABASE_PROVIDER: postgresql
-      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-judite}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/evolution?schema=public
-      DATABASE_CONNECTION_CLIENT_NAME: judite_evolution
+      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-atentio}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/evolution?schema=public
+      DATABASE_CONNECTION_CLIENT_NAME: atentio_evolution
       CACHE_REDIS_ENABLED: "true"
       CACHE_REDIS_URI: redis://redis:6379/1
       CACHE_REDIS_PREFIX_KEY: evolution
@@ -81,19 +81,19 @@ services:
   migrate:
     build:
       context: ./apps/backend
-    image: judite-backend
+    image: atentio-backend
     command: ["alembic", "upgrade", "head"]
     restart: "no"
     depends_on:
       postgres: { condition: service_healthy }
     environment:
       <<: *python-env
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-judite}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/${POSTGRES_DB:-judite}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-atentio}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/${POSTGRES_DB:-atentio}
 
   backend:
     build:
       context: ./apps/backend
-    image: judite-backend
+    image: atentio-backend
     restart: unless-stopped
     depends_on:
       migrate: { condition: service_completed_successfully }
@@ -101,7 +101,7 @@ services:
       mailpit: { condition: service_healthy }
     environment:
       <<: *python-env
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-judite}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/${POSTGRES_DB:-judite}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-atentio}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@postgres:5432/${POSTGRES_DB:-atentio}
       REDIS_URL: redis://redis:6379/0
       EVOLUTION_API_URL: http://evolution-api:8080
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:?defina EVOLUTION_API_KEY no .env}
@@ -115,7 +115,7 @@ services:
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8180}
       SMTP_HOST: ${SMTP_HOST:-mailpit}
       SMTP_PORT: ${SMTP_PORT:-1025}
-      SMTP_FROM: ${SMTP_FROM:-Judite <nao-responda@judite.local>}
+      SMTP_FROM: ${SMTP_FROM:-Atentio <nao-responda@atentio.local>}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_TLS: ${SMTP_TLS:-false}
@@ -130,7 +130,7 @@ services:
   workers:
     build:
       context: ./apps/workers
-    image: judite-workers
+    image: atentio-workers
     restart: unless-stopped
     depends_on:
       redis: { condition: service_healthy }
@@ -150,7 +150,7 @@ services:
   mcp:
     build:
       context: ./apps/mcp
-    image: judite-mcp
+    image: atentio-mcp
     restart: unless-stopped
     environment:
       <<: *python-env
@@ -166,7 +166,7 @@ services:
   frontend:
     build:
       context: ./apps/frontend
-    image: judite-frontend
+    image: atentio-frontend
     restart: unless-stopped
     depends_on:
       backend: { condition: service_healthy }

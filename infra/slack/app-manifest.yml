@@ -1,0 +1,28 @@
+# Manifesto do app do Slack da Atentio.
+# Crie em https://api.slack.com/apps > Create New App > From a manifest.
+# Somente leitura: não há nenhuma permissão de escrita, como chat:write.
+display_information:
+  name: Atentio
+  description: Acompanha canais, DMs e menções para que nada importante se perca.
+oauth_config:
+  scopes:
+    user:
+      - channels:history
+      - channels:read
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - mpim:history
+      - mpim:read
+      - users:read
+settings:
+  event_subscriptions:
+    user_events:
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+  socket_mode_enabled: true
+  org_deploy_enabled: false
+  token_rotation_enabled: false

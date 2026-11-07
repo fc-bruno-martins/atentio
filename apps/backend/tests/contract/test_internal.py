@@ -18,12 +18,19 @@ async def test_webhook_sem_segredo_e_recusado(api: Api) -> None:
 
 
 async def test_webhook_com_segredo_errado_e_recusado(api: Api) -> None:
-    response = await api.client.post(URL, json=_event("x"), headers={"x-judite-secret": "errado"})
+    response = await api.client.post(URL, json=_event("x"), headers={"x-atentio-secret": "errado"})
+    assert response.status_code == 401
+
+
+async def test_cabecalho_antigo_nao_vale_mais(api: Api) -> None:
+    response = await api.client.post(
+        URL, json=_event("x"), headers={"x-judite-secret": WEBHOOK_SECRET}
+    )
     assert response.status_code == 401
 
 
 async def test_webhook_invalido_responde_422(api: Api) -> None:
-    response = await api.client.post(URL, json={}, headers={"x-judite-secret": WEBHOOK_SECRET})
+    response = await api.client.post(URL, json={}, headers={"x-atentio-secret": WEBHOOK_SECRET})
     assert response.status_code == 422
 
 
@@ -31,7 +38,7 @@ async def test_evento_desconhecido_e_ignorado(api: Api) -> None:
     response = await api.client.post(
         URL,
         json={"event": "outro.evento", "instance": "x", "data": None},
-        headers={"x-judite-secret": WEBHOOK_SECRET},
+        headers={"x-atentio-secret": WEBHOOK_SECRET},
     )
     assert response.status_code == 204
 
@@ -40,17 +47,19 @@ async def test_webhook_conclui_a_conexao(api: Api) -> None:
     root = await api.platform_admin()
     _, admin = await api.company(root, "Acme", "admin@acme.com")
     user = await api.member(admin, "user@acme.com")
-    attempt = (await api.client.post("/api/v1/numbers/connections", headers=user.headers)).json()
+    attempt = (
+        await api.client.post("/api/v1/channels/whatsapp/attempts", headers=user.headers)
+    ).json()
     instance = next(iter(api.whatsapp.instances))
     api.whatsapp.scan(instance, JID)
 
     response = await api.client.post(
-        URL, json=_event(instance), headers={"x-judite-secret": WEBHOOK_SECRET}
+        URL, json=_event(instance), headers={"x-atentio-secret": WEBHOOK_SECRET}
     )
 
     assert response.status_code == 204
     state = await api.client.get(
-        f"/api/v1/numbers/connections/{attempt['id']}", headers=user.headers
+        f"/api/v1/channels/whatsapp/attempts/{attempt['id']}", headers=user.headers
     )
     assert state.json()["status"] == "connected"
 
@@ -85,17 +94,21 @@ async def test_webhook_de_logout_desconecta_e_o_dono_ve_o_motivo(api: Api) -> No
     root = await api.platform_admin()
     _, admin = await api.company(root, "Acme", "admin@acme.com")
     user = await api.member(admin, "user@acme.com")
-    attempt = (await api.client.post("/api/v1/numbers/connections", headers=user.headers)).json()
+    attempt = (
+        await api.client.post("/api/v1/channels/whatsapp/attempts", headers=user.headers)
+    ).json()
     instance = next(iter(api.whatsapp.instances))
     api.whatsapp.scan(instance, JID)
-    await api.client.get(f"/api/v1/numbers/connections/{attempt['id']}", headers=user.headers)
+    await api.client.get(
+        f"/api/v1/channels/whatsapp/attempts/{attempt['id']}", headers=user.headers
+    )
 
     await api.client.post(
         URL,
         json={"event": "logout.instance", "instance": instance, "data": None},
-        headers={"x-judite-secret": WEBHOOK_SECRET},
+        headers={"x-atentio-secret": WEBHOOK_SECRET},
     )
 
-    [number] = (await api.client.get("/api/v1/numbers", headers=user.headers)).json()
+    [number] = (await api.client.get("/api/v1/connections", headers=user.headers)).json()
     assert number["status"] == "disconnected"
     assert number["disconnect_reason"] == "phone"

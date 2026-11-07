@@ -26,11 +26,11 @@ async def test_cria_administrador_e_recusa_duplicado_e_senha_curta(
 
     run = asyncio.to_thread
 
-    assert await run(_run, monkeypatch, postgres_url, PASSWORD, "cli@judite.com") == 0
-    assert (await api.login("cli@judite.com")).headers
+    assert await run(_run, monkeypatch, postgres_url, PASSWORD, "cli@atentio.com") == 0
+    assert (await api.login("cli@atentio.com")).headers
 
-    assert await run(_run, monkeypatch, postgres_url, PASSWORD, "cli@judite.com") == 1
+    assert await run(_run, monkeypatch, postgres_url, PASSWORD, "cli@atentio.com") == 1
     assert "já está em uso" in capsys.readouterr().err
 
-    assert await run(_run, monkeypatch, postgres_url, "curta", "outro@judite.com") == 1
+    assert await run(_run, monkeypatch, postgres_url, "curta", "outro@atentio.com") == 1
     assert "12 caracteres" in capsys.readouterr().err

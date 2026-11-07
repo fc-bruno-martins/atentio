@@ -1,5 +1,5 @@
 [project]
-name = "judite-workers"
+name = "atentio-workers"
 version = "0.2.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [

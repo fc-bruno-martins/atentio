@@ -57,7 +57,7 @@ def test_instancia_so_esta_aberta_com_dono_conhecido() -> None:
 
 def test_nome_da_instancia_nao_leva_dado_pessoal() -> None:
     attempt = _attempt()
-    assert attempt.instance_name.startswith("judite-")
+    assert attempt.instance_name.startswith("atentio-")
     assert str(attempt.user_id) not in attempt.instance_name
 
 

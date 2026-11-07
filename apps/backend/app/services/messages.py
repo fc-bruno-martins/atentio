@@ -48,8 +48,16 @@ class MessageService:
                 stored += 1
         return stored
 
-    async def list_conversations(self, actor: Actor) -> Sequence[Conversation]:
-        return await self._messages.list_conversations(actor.user_id)
+    async def list_conversations(
+        self,
+        actor: Actor,
+        *,
+        channel: str | None = None,
+        connection_id: UUID | None = None,
+    ) -> Sequence[Conversation]:
+        return await self._messages.list_conversations(
+            actor.user_id, channel=channel, connection_id=connection_id
+        )
 
     async def read(
         self,

@@ -40,7 +40,7 @@ class RequireBearer:
 
 def create_app(settings: Settings, reader: MessageReader | None = None) -> Starlette:
     client = httpx.AsyncClient(timeout=settings.backend_timeout_seconds)
-    server: MCPServer = MCPServer(name="judite", version="0.3.0", instructions=INSTRUCTIONS)
+    server: MCPServer = MCPServer(name="atentio", version="0.3.0", instructions=INSTRUCTIONS)
     register_tools(server, reader or BackendMessageReader(client, settings.backend_url))
 
     async def health(_: Request) -> Response:

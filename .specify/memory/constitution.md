@@ -1,4 +1,4 @@
-# Judite Constitution
+# Atentio Constitution
 
 ## Core Principles
 

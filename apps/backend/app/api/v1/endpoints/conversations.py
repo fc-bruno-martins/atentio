@@ -14,7 +14,8 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 def conversation_out(conversation: Conversation) -> ConversationOut:
     return ConversationOut(
         id=conversation.id,
-        number_id=conversation.number_id,
+        connection_id=conversation.number_id,
+        channel=conversation.channel,
         kind=conversation.kind.value,
         name=conversation.name,
         contact=conversation.remote_jid.split("@")[0],
@@ -35,9 +36,15 @@ def message_out(message: Message) -> MessageOut:
 
 @router.get("")
 async def list_conversations(
-    actor: CompanyMemberDep, service: MessageServiceDep
+    actor: CompanyMemberDep,
+    service: MessageServiceDep,
+    channel: str | None = None,
+    connection_id: UUID | None = None,
 ) -> list[ConversationOut]:
-    return [conversation_out(c) for c in await service.list_conversations(actor)]
+    conversations = await service.list_conversations(
+        actor, channel=channel, connection_id=connection_id
+    )
+    return [conversation_out(c) for c in conversations]
 
 
 @router.get("/{conversation_id}/messages")

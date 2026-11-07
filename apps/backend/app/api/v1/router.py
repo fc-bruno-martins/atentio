@@ -30,6 +30,7 @@ for module in (
 ):
     api_router.include_router(module.router)
 api_router.include_router(numbers.company_router)
+api_router.include_router(numbers.channels_router)
 api_router.include_router(mcp.tokens_router)
 api_router.include_router(analyses.prompts_router)
 api_router.include_router(analyses.models_router)

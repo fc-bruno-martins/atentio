@@ -8,15 +8,15 @@ describe('menu por perfil', () => {
     expect(labels('platform_admin')).toEqual(['Empresas', 'Status', 'Meu perfil'])
     expect(labels('company_admin')).toEqual([
       'Usuários',
-      'Números da empresa',
+      'Canais da empresa',
       'Parâmetros',
       'Conversas',
       'Análises',
       'Prompts',
-      'Números',
+      'Canais',
       'Meu perfil',
     ])
-    expect(labels('user')).toEqual(['Conversas', 'Análises', 'Prompts', 'Números', 'Meu perfil'])
+    expect(labels('user')).toEqual(['Conversas', 'Análises', 'Prompts', 'Canais', 'Meu perfil'])
   })
 
   it('define a tela inicial do perfil', () => {

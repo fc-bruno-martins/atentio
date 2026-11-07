@@ -11,7 +11,7 @@ import {
   fetchConnection,
   startConnection,
   type ConnectionAttempt,
-} from '../services/numbers'
+} from '../services/channels'
 
 const POLL_INTERVAL_MS = 3_000
 
@@ -88,7 +88,7 @@ export function ConnectDialog({
   }
 
   return (
-    <Dialog open onClose={close} title="Conectar número">
+    <Dialog open onClose={close} title="Conectar WhatsApp">
       <div className="flex flex-col gap-4">
         <Notice />
         {attempt && pending && <QrCode attempt={attempt} />}

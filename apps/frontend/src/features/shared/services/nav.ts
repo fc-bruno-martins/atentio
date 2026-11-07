@@ -1,11 +1,10 @@
 import {
   Activity,
   Building2,
+  Cable,
   ClipboardList,
   MessagesSquare,
-  MonitorSmartphone,
   Settings,
-  Smartphone,
   Sparkles,
   UserRound,
   Users,
@@ -15,7 +14,7 @@ import type { Role } from '../types'
 
 const PROFILE: NavItem = { href: '/perfil', label: 'Meu perfil', icon: UserRound }
 
-const NUMBERS: NavItem = { href: '/numeros', label: 'Números', icon: Smartphone }
+const CHANNELS: NavItem = { href: '/canais', label: 'Canais', icon: Cable }
 
 const CONVERSATIONS: NavItem = { href: '/conversas', label: 'Conversas', icon: MessagesSquare }
 
@@ -30,15 +29,15 @@ const MENUS: Record<Role, NavItem[]> = {
   ],
   company_admin: [
     { href: '/usuarios', label: 'Usuários', icon: Users },
-    { href: '/numeros-da-empresa', label: 'Números da empresa', icon: MonitorSmartphone },
+    { href: '/canais-da-empresa', label: 'Canais da empresa', icon: Cable },
     { href: '/parametros', label: 'Parâmetros', icon: Settings },
     CONVERSATIONS,
     ANALYSES,
     PROMPTS,
-    NUMBERS,
+    CHANNELS,
     PROFILE,
   ],
-  user: [CONVERSATIONS, ANALYSES, PROMPTS, NUMBERS, PROFILE],
+  user: [CONVERSATIONS, ANALYSES, PROMPTS, CHANNELS, PROFILE],
 }
 
 export const menuFor = (role: Role): NavItem[] => MENUS[role]

@@ -59,7 +59,7 @@ class EvolutionGateway:
             "url": self._webhook_url,
             "byEvents": False,
             "base64": False,
-            "headers": {"x-judite-secret": self._webhook_secret},
+            "headers": {"x-atentio-secret": self._webhook_secret},
             "events": WEBHOOK_EVENTS,
         }
 

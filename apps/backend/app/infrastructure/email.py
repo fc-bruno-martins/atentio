@@ -14,8 +14,8 @@ class SmtpEmailSender:
     async def send_invitation(self, *, to: str, company_name: str, url: str) -> None:
         await self._send(
             to,
-            f"Convite para a {company_name} na Judite",
-            f"Você foi convidado para a empresa {company_name} na Judite.\n\n"
+            f"Convite para a {company_name} na Atentio",
+            f"Você foi convidado para a empresa {company_name} na Atentio.\n\n"
             f"Crie sua conta por este link, válido por {self._settings.invitation_ttl_days} dias:"
             f"\n{url}\n",
         )
@@ -23,8 +23,8 @@ class SmtpEmailSender:
     async def send_password_reset(self, *, to: str, url: str) -> None:
         await self._send(
             to,
-            "Redefinição de senha da Judite",
-            "Recebemos um pedido para redefinir sua senha na Judite.\n\n"
+            "Redefinição de senha da Atentio",
+            "Recebemos um pedido para redefinir sua senha na Atentio.\n\n"
             f"Defina uma nova senha por este link, válido por "
             f"{self._settings.password_reset_ttl_minutes} minutos:\n{url}\n\n"
             "Se não foi você, ignore este e-mail.\n",

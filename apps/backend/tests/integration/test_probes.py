@@ -18,7 +18,7 @@ async def test_database_probe(container: Container) -> None:
     probe = DatabaseProbe(container.engine)
 
     assert await probe.check() == ComponentStatus.up(Component.DATABASE)
-    assert await probe.current_version() == "0007"
+    assert await probe.current_version() == "0009"
 
 
 async def test_database_probe_indisponivel() -> None:

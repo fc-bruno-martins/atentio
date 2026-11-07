@@ -415,8 +415,20 @@ class FakeMessages:
         )
         return True
 
-    async def list_conversations(self, owner_user_id: UUID) -> Sequence[Conversation]:
-        return [c for c in self.conversations.values() if c.owner_user_id == owner_user_id]
+    async def list_conversations(
+        self,
+        owner_user_id: UUID,
+        *,
+        channel: str | None = None,
+        connection_id: UUID | None = None,
+    ) -> Sequence[Conversation]:
+        return [
+            c
+            for c in self.conversations.values()
+            if c.owner_user_id == owner_user_id
+            and (channel is None or c.channel == channel)
+            and (connection_id is None or c.number_id == connection_id)
+        ]
 
     async def get_conversation(
         self, owner_user_id: UUID, conversation_id: UUID
