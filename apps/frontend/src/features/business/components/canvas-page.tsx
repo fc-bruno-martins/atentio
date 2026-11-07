@@ -4,7 +4,7 @@ import { LayoutGrid } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { CANVAS, COMPETITORS, PITCH, type CanvasBlockId } from '../services/content'
+import { CANVAS, COMPETITORS, EDGE, type CanvasBlockId } from '../services/content'
 
 /** Posição de cada bloco na grade de 10 colunas do canvas clássico (telas largas). */
 const PLACEMENT: Record<CanvasBlockId, string> = {
@@ -72,7 +72,7 @@ export function CanvasPage() {
           ))}
         </div>
         <p className="border-t border-border pt-3 text-sm">
-          <strong>Diferencial:</strong> {PITCH.edge}
+          <strong>Diferencial:</strong> {EDGE}
         </p>
       </Card>
     </div>

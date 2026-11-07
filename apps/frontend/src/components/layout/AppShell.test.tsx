@@ -115,3 +115,17 @@ it('sem navegação, não oferece o modo telão', () => {
   renderShell()
   expect(screen.queryByRole('button', { name: 'Modo telão' })).not.toBeInTheDocument()
 })
+
+it('no telão, seta já usada pela tela (como no pitch deck) não troca de menu', async () => {
+  const onNavigate = vi.fn()
+  const consume = (event: KeyboardEvent) => event.preventDefault()
+  document.addEventListener('keydown', consume)
+  try {
+    renderShell({ items: MENU, activeHref: '/bmc', onNavigate })
+    await userEvent.click(screen.getByRole('button', { name: 'Modo telão' }))
+    await userEvent.keyboard('{ArrowRight}')
+    expect(onNavigate).not.toHaveBeenCalled()
+  } finally {
+    document.removeEventListener('keydown', consume)
+  }
+})

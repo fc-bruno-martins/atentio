@@ -1,53 +1,112 @@
 'use client'
 
-import { Presentation, Quote } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ChevronLeft, ChevronRight, Presentation } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { isFreeKey } from '@/components/layout/presentation'
 import { PageHeader } from '@/components/PageHeader'
-import { Card } from '@/components/ui/card'
-import { PITCH } from '../services/content'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { PITCH_DECK } from '../services/content'
+import { SlideView } from './slide'
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card className="flex flex-col gap-2 p-5">
-      <h2 className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">{title}</h2>
-      {children}
-    </Card>
-  )
+const title = (index: number) => {
+  const slide = PITCH_DECK[index]
+  return slide ? (slide.kind === 'cover' ? slide.title : slide.eyebrow) : ''
 }
 
+/**
+ * Pitch deck, um slide por vez. ← e → (ou PageUp e PageDown) trocam de slide; nas pontas a
+ * tecla fica livre, e no modo telão segue para a tela vizinha do menu.
+ */
 export function PitchPage() {
+  const [index, setIndex] = useState(0)
+  const last = PITCH_DECK.length - 1
+
+  useEffect(() => {
+    // No `document`, para responder antes das setas do telão, que escutam a `window`.
+    const onKey = (event: KeyboardEvent) => {
+      if (!isFreeKey(event)) return
+      const step =
+        event.key === 'ArrowRight' || event.key === 'PageDown'
+          ? 1
+          : event.key === 'ArrowLeft' || event.key === 'PageUp'
+            ? -1
+            : 0
+      const next = index + step
+      if (!step || next < 0 || next > last) return
+      event.preventDefault()
+      setIndex(next)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [index, last])
+
+  const slide = PITCH_DECK[index]
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4">
-      <PageHeader title="Pitch" subtitle="Atentio para gestores de Customer Success, em uma página." icon={Presentation} />
+    <div className="mx-auto flex max-w-7xl flex-col gap-4">
+      <PageHeader
+        title="Pitch"
+        subtitle="Atentio para gestores de Customer Success. Use ← e → para passar os slides."
+        icon={Presentation}
+      />
 
-      <Card className="flex flex-col gap-4 border-primary/40 p-6">
-        <p className="text-xl leading-snug font-semibold text-foreground">{PITCH.headline}</p>
-        <blockquote className="flex items-start gap-2 text-muted-foreground">
-          <Quote aria-hidden className="mt-1 h-4 w-4 shrink-0 text-primary-ink" />
-          <span className="italic">{PITCH.opening}</span>
-        </blockquote>
-      </Card>
+      <section
+        aria-roledescription="apresentação"
+        aria-label="Pitch deck"
+        // Em 16:9, a largura é limitada pela altura da janela para o slide caber inteiro.
+        className="@container relative w-full self-center overflow-hidden rounded-2xl border border-border bg-card shadow-xs md:aspect-video md:w-[min(100%,calc((100dvh-16rem)*16/9))]"
+        data-slot="card"
+      >
+        <div
+          key={index}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`Slide ${index + 1} de ${PITCH_DECK.length}: ${title(index)}`}
+          className="fx-enter h-full p-[clamp(1.25rem,5cqw,5rem)]"
+        >
+          {slide && <SlideView slide={slide} />}
+        </div>
+        <span className="absolute right-[2cqw] bottom-[1.5cqw] font-mono text-[clamp(0.65rem,1.1cqw,0.95rem)] text-muted-foreground tabular-nums">
+          {index + 1} / {PITCH_DECK.length}
+        </span>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Section title="Problema">
-          <p>{PITCH.problem}</p>
-        </Section>
-        <Section title="Solução">
-          <p>{PITCH.solution}</p>
-          <ul className="list-disc space-y-1 pl-5">
-            {PITCH.questions.map((question) => (
-              <li key={question}>“{question}”</li>
-            ))}
-          </ul>
-          <p className="text-sm text-muted-foreground">{PITCH.solutionNote}</p>
-        </Section>
-        <Section title="Diferencial">
-          <p>{PITCH.edge}</p>
-        </Section>
-        <Section title="Pedido ao júri">
-          <p className="font-semibold">{PITCH.ask}</p>
-        </Section>
-      </div>
+      <nav aria-label="Slides" className="flex items-center justify-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Slide anterior"
+          disabled={index === 0}
+          onClick={() => setIndex(index - 1)}
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+        <ol className="flex flex-wrap items-center justify-center gap-1.5">
+          {PITCH_DECK.map((_, position) => (
+            <li key={position}>
+              <button
+                type="button"
+                aria-label={`Ir para o slide ${position + 1}: ${title(position)}`}
+                aria-current={position === index ? 'step' : undefined}
+                onClick={() => setIndex(position)}
+                className={cn(
+                  'block h-2 rounded-full transition-all',
+                  position === index ? 'w-6 bg-primary' : 'w-2 bg-border hover:bg-muted-foreground',
+                )}
+              />
+            </li>
+          ))}
+        </ol>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Próximo slide"
+          disabled={index === last}
+          onClick={() => setIndex(index + 1)}
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </nav>
     </div>
   )
 }
