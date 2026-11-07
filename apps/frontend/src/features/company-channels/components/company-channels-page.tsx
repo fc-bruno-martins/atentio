@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Cable, Unplug } from 'lucide-react'
+import { Cable, PlugZap, Unplug, Users } from 'lucide-react'
 import { useState } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog } from '@/components/ui/dialog'
 import { FormError } from '@/components/ui/field'
-import { channelLabel, ConnectionStatus, formatAccount, formatDate } from '@/features/shared'
+import { Initials } from '@/components/ui/initials'
+import { Stat } from '@/components/ui/stat'
+import { useToast } from '@/components/ui/toast'
+import { ConnectionStatus, ConnectorBadge, formatAccount, formatDate } from '@/features/shared'
 import {
   disconnectCompanyConnection,
   fetchCompanyConnections,
@@ -21,10 +24,12 @@ const POLL_INTERVAL_MS = 30_000
 
 function ConfirmDialog({ connection, onClose }: { connection: CompanyConnection; onClose: () => void }) {
   const queryClient = useQueryClient()
+  const notify = useToast()
   const mutation = useMutation({
     mutationFn: () => disconnectCompanyConnection(connection.id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      notify('Conta desconectada.')
       onClose()
     },
   })
@@ -59,23 +64,39 @@ export function CompanyChannelsPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <PageHeader
-        title="Canais da empresa"
-        subtitle="Contas conectadas por pessoa, em cada canal. Conversas e mensagens não ficam aqui."
+        title="Conectores da empresa"
+        subtitle="Contas conectadas por pessoa, em cada conector. Conversas e mensagens não ficam aqui."
         icon={Cable}
       />
       <FormError message={error?.message} />
+      {data && data.length > 0 && (
+        <div className="fx-stagger grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Stat label="Contas" value={data.length} icon={Cable} />
+          <Stat
+            label="Capturando agora"
+            value={data.filter((c) => c.status === 'connected').length}
+            icon={PlugZap}
+          />
+          <Stat label="Pessoas" value={new Set(data.map((c) => c.owner_id)).size} icon={Users} />
+        </div>
+      )}
       {data?.length === 0 && (
         <EmptyState icon={Cable} title="Nenhuma conta conectada na empresa" />
       )}
       {data && data.length > 0 && (
         <Card>
-          <ul className="divide-y divide-border">
+          <ul className="fx-stagger divide-y divide-border">
             {data.map((connection) => (
-              <li key={connection.id} className="flex items-center justify-between gap-4 p-4">
-                <div>
+              <li
+                key={connection.id}
+                className="flex flex-wrap items-center gap-3 p-4 transition-colors hover:bg-muted/50"
+              >
+                <Initials name={connection.owner_name} />
+                <div className="min-w-0 flex-1">
                   <p className="font-medium">{connection.owner_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {channelLabel(connection.channel)} · {formatAccount(connection)} ·{' '}
+                    <ConnectorBadge channel={connection.channel} className="mr-1.5 align-middle" />
+                    {formatAccount(connection)} ·{' '}
                     {formatDate(connection.status_changed_at)}
                   </p>
                 </div>

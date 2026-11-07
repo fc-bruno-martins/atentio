@@ -28,7 +28,7 @@ describe('LoginForm', () => {
 
     await fillLogin()
 
-    await vi.waitFor(() => expect(assign).toHaveBeenCalledWith('/usuarios'))
+    await vi.waitFor(() => expect(assign).toHaveBeenCalledWith('/cerebro'))
     expect(calls[0]?.body).toEqual({ email: 'ana@acme.com', password: 'senha-muito-boa' })
   })
 

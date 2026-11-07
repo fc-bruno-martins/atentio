@@ -6,10 +6,15 @@ import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, FormError } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
-import { ModelInput } from '@/features/shared'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/toast'
+import { usePresets } from '@/features/shared'
+import { NativeSelect } from '@/components/ui/textarea'
 import { fetchAiSettings, saveAiSettings, type CompanyUser } from '../services/users'
 
 export function AiSettingsDialog({ user, onClose }: { user: CompanyUser; onClose: () => void }) {
+  const notify = useToast()
+  const presets = usePresets()
   const { data, error } = useQuery({
     queryKey: ['ai-settings', user.id],
     queryFn: () => fetchAiSettings(user.id),
@@ -23,7 +28,10 @@ export function AiSettingsDialog({ user, onClose }: { user: CompanyUser; onClose
         extra_prompt: String(values.get('extra_prompt')),
       })
     },
-    onSuccess: onClose,
+    onSuccess: () => {
+      notify('Configurações de análise salvas.')
+      onClose()
+    },
   })
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -37,7 +45,17 @@ export function AiSettingsDialog({ user, onClose }: { user: CompanyUser; onClose
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="model">Modelo padrão da pessoa</Label>
-            <ModelInput id="model" name="model" defaultValue={data.model ?? ''} />
+            <NativeSelect id="model" name="model" defaultValue={data.model ?? ''}>
+              <option value="">Padrão da plataforma</option>
+              {presets.data?.presets.map((preset) => (
+                <option key={preset.id} value={preset.model}>
+                  {preset.label} · {preset.description}
+                </option>
+              ))}
+              {data.model && !presets.data?.presets.some((p) => p.model === data.model) && (
+                <option value={data.model}>Modelo personalizado</option>
+              )}
+            </NativeSelect>
           </div>
           <Field
             id="temperature"
@@ -50,11 +68,11 @@ export function AiSettingsDialog({ user, onClose }: { user: CompanyUser; onClose
           />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="extra_prompt">Prompt adicional</Label>
-            <textarea
+            <Textarea
               id="extra_prompt"
               name="extra_prompt"
               defaultValue={data.extra_prompt ?? ''}
-              className="min-h-24 rounded-md border border-input bg-background p-2 text-sm"
+              placeholder="Instruções que valem para todas as análises desta pessoa."
             />
           </div>
           <FormError message={mutation.error?.message} />

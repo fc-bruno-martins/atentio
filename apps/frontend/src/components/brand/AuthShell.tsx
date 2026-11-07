@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AtentioMark } from '@/components/brand/AtentioMark'
+import { Backdrop } from '@/components/layout/Backdrop'
 
 /**
  * Casca das telas públicas (login, reset de senha): painel de marca à esquerda
@@ -49,27 +50,27 @@ function BrandShape() {
 
 function BrandPanel() {
   return (
-    <div className="relative hidden w-[44%] max-w-md shrink-0 flex-col justify-between overflow-hidden bg-[#121212] px-12 py-10 lg:flex">
+    <div className="relative z-10 hidden w-[44%] max-w-md shrink-0 flex-col justify-between overflow-hidden border-r border-[#25E2AF]/15 bg-[#04070b]/80 px-12 py-10 backdrop-blur-xl lg:flex">
       <BrandTexture />
       <BrandShape />
+      <AtentioMark
+        animated
+        className="pointer-events-none absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-[70%] opacity-[0.12] drop-shadow-[0_0_40px_#25E2AF]"
+      />
 
-      <div className="relative z-10 flex items-center gap-2.5">
-        <AtentioMark className="h-[22px] w-auto" />
+      <div className="fx-enter relative z-10 flex items-center gap-2.5">
+        <AtentioMark animated className="h-[22px] w-auto drop-shadow-[0_0_8px_#25E2AF]" />
         <span className="text-lg font-semibold leading-none tracking-tight text-white">
           Atentio
         </span>
       </div>
 
-      <div className="relative z-10 max-w-sm">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#25E2AF]/25 bg-[#25E2AF]/10 px-2.5 py-1 text-xs font-medium text-[#25E2AF]">
-          <span className="size-1.5 rounded-full bg-[#25E2AF]" />
-          Plataforma
-        </span>
-        <p className="mt-5 text-[28px] font-medium leading-[1.2] text-white">
-          Nada do seu WhatsApp fica para trás.
+      <div className="fx-stagger relative z-10 max-w-sm">
+        <p className="text-[30px] font-semibold leading-[1.15] text-white">
+          Nenhum cliente <span className="fx-neon-text">fica para trás.</span>
         </p>
         <p className="mt-4 text-sm leading-relaxed text-[#ADB1BA]">
-          Conversas organizadas para você identificar o que precisa de atenção.
+          Agentes de IA que ouvem as conversas com seus clientes e mostram a gestores de Customer Success onde o relacionamento precisa de atenção.
         </p>
       </div>
 
@@ -88,14 +89,15 @@ interface AuthShellProps {
 
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="relative flex min-h-screen bg-background">
+      <Backdrop />
       <BrandPanel />
 
-      <div className="flex flex-1 items-center justify-center p-6 md:p-8">
-        <div className="flex w-full max-w-sm flex-col gap-6">
+      <div className="relative z-10 flex flex-1 items-center justify-center p-6 md:p-8">
+        <div className="fx-enter flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-border bg-card/40 p-8 shadow-[0_0_80px_-30px_rgb(37_226_175/0.45)] backdrop-blur-xl">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <AtentioMark className="h-7 w-auto" />
+              <AtentioMark animated className="h-7 w-auto drop-shadow-[0_0_10px_rgb(37_226_175/0.7)]" />
               <span className="text-xl font-semibold leading-none tracking-tight text-foreground">
                 Atentio
               </span>

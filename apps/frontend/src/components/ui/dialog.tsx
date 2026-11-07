@@ -72,7 +72,7 @@ export function Dialog({
       <div
         onClick={onClose}
         aria-hidden
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
 
       {/* Card */}
@@ -81,7 +81,7 @@ export function Dialog({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'relative z-10 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl',
+          'fx-pop relative z-10 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-2xl dark:border-primary/25 dark:shadow-[0_0_60px_-20px_rgb(37_226_175/0.5)]',
           className
         )}
       >

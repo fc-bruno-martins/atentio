@@ -34,11 +34,17 @@ export function PageHeader({
       <div className="flex items-start gap-2.5 min-w-0">
         {/* Ícone inline e discreto — o chip colorido competia com o conteúdo em
             todas as páginas ao mesmo tempo. */}
-        {Icon && <Icon className="mt-1 h-6 w-6 shrink-0 text-primary-ink/60" />}
+        {Icon && (
+          <Icon className="mt-1 h-6 w-6 shrink-0 text-primary-ink drop-shadow-[0_0_8px_rgb(37_226_175/0.6)]" />
+        )}
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight text-foreground">
             {title}
           </h1>
+          <div
+            aria-hidden
+            className="mt-1.5 h-px w-24 bg-gradient-to-r from-primary via-[var(--neon-2)] to-transparent"
+          />
           {subtitle && (
             <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
           )}

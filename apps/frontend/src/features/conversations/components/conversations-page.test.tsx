@@ -107,26 +107,17 @@ it('sem período não envia filtro', () => {
   expect(periodParams({ from: '', to: '' })).toBe('')
 })
 
-it('analisa só as mensagens selecionadas', async () => {
-  const calls = mockApi({
+it('leva para Análises com a conversa escolhida', async () => {
+  mockApi({
     [LIST]: { body: [direct] },
-    [PROMPTS]: { body: [] },
-    [MODELS]: { body: { models: [], default_model: 'modelo/x' } },
     [MESSAGES]: { body: { conversation: direct, messages: [message] } },
-    'POST /api/v1/analyses': {
-      status: 201,
-      body: { id: 'a1', status: 'done', result: 'Resumo pronto', message_count: 1 },
-    },
   })
   renderWithQuery(<ConversationsPage />)
   await userEvent.click(await screen.findByRole('button', { name: /Ana/ }))
-  await userEvent.click(await screen.findByRole('checkbox'))
-  expect(screen.getByText('1 mensagem selecionada')).toBeInTheDocument()
-  await userEvent.type(screen.getByLabelText('Prompt'), 'Resuma')
-  await userEvent.click(screen.getByRole('button', { name: 'Analisar' }))
-  expect(await screen.findByText('Resumo pronto')).toBeInTheDocument()
-  const call = calls.find((item) => item.key === 'POST /api/v1/analyses')
-  expect(call?.body).toMatchObject({ message_ids: ['m1'], prompt_text: 'Resuma' })
+  expect(await screen.findByRole('link', { name: 'Analisar' })).toHaveAttribute(
+    'href',
+    '/analises?conversa=c1',
+  )
 })
 
 it('mostra o canal da conversa', async () => {

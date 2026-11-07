@@ -15,7 +15,13 @@ export interface Connection {
   disconnect_reason: DisconnectReason | null
 }
 
-export const CHANNEL_LABELS: Record<string, string> = { whatsapp: 'WhatsApp', slack: 'Slack' }
+export const CHANNEL_LABELS: Record<string, string> = {
+  whatsapp: 'WhatsApp',
+  slack: 'Slack',
+  teams: 'Microsoft Teams',
+  discord: 'Discord',
+  clickup: 'ClickUp',
+}
 
 export const channelLabel = (channel: string) => CHANNEL_LABELS[channel] ?? channel
 
@@ -27,7 +33,7 @@ export const REASON_LABELS: Record<DisconnectReason, string> = {
   company_deactivated: 'Desconectado porque a empresa foi desativada',
 }
 
-/** Cada canal mostra a conta do seu jeito: no WhatsApp, a conta é o telefone. */
+/** Cada conector mostra a conta do seu jeito: no WhatsApp, a conta é o telefone. */
 export const formatAccount = ({ channel, account }: Pick<Connection, 'channel' | 'account'>) =>
   channel === 'whatsapp' ? `+${account}` : account
 

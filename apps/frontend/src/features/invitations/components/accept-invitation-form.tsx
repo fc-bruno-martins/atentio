@@ -5,6 +5,7 @@ import type { FormEvent } from 'react'
 import { AuthShell } from '@/components/brand/AuthShell'
 import { Button } from '@/components/ui/button'
 import { Field, FormError } from '@/components/ui/field'
+import { PasswordField } from '@/components/ui/password-field'
 import { acceptInvitation, lookupInvitation } from '../services/invitations'
 
 export function AcceptInvitationForm({ token }: { token: string }) {
@@ -43,10 +44,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
         <Field id="name" label="Nome" autoComplete="name" required minLength={2} />
-        <Field
-          id="password"
-          label="Senha"
-          type="password"
+        <PasswordField id="password" label="Senha" meter
           autoComplete="new-password"
           minLength={12}
           required

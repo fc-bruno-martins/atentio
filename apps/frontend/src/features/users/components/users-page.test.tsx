@@ -96,12 +96,20 @@ it('o admin configura modelo e prompt adicional por usuário', async () => {
     'GET /api/v1/users': { body: [ana] },
     'GET /api/v1/company-invitations': { body: [] },
     [`GET ${route}`]: { body: { model: null, temperature: null, extra_prompt: null } },
-    'GET /api/v1/analysis-models': { body: { models: [], default_model: null } },
+    'GET /api/v1/analysis-models': {
+      body: {
+        presets: [
+          { id: 'rapido', label: 'Rápido', description: '', model: 'modelo/x', input_price: 1, output_price: 2 },
+        ],
+        default_preset: 'rapido',
+      },
+    },
     [`PUT ${route}`]: { body: {} },
   })
   renderWithQuery(<UsersPage />)
   await userEvent.click(await screen.findByRole('button', { name: 'Análises' }))
-  await userEvent.type(await screen.findByLabelText(/Modelo/), 'modelo/x')
+  await screen.findByRole('option', { name: /Rápido/ })
+  await userEvent.selectOptions(await screen.findByLabelText(/Modelo/), 'modelo/x')
   await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
   await waitFor(() =>
     expect(calls.find((c) => c.key === `PUT ${route}`)?.body).toMatchObject({ model: 'modelo/x' }),

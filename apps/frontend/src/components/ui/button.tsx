@@ -8,9 +8,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary-hover',
-        secondary: 'bg-neutral-700 text-white hover:bg-neutral-600',
-        outline: 'bg-neutral-700 text-white hover:bg-neutral-600',
+        default: 'fx-btn-glow bg-primary text-primary-foreground hover:bg-primary-hover',
+        secondary:
+          'bg-neutral-700 text-white hover:bg-neutral-600 dark:border-border dark:bg-secondary dark:hover:border-primary/40 dark:hover:bg-primary/10',
+        outline:
+          'bg-neutral-700 text-white hover:bg-neutral-600 dark:border-border dark:bg-secondary dark:hover:border-primary/40 dark:hover:bg-primary/10',
         ghost: 'text-foreground hover:bg-muted dark:hover:bg-muted/50',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',

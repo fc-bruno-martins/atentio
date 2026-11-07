@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus } from 'lucide-react'
+import { Building2, CircleCheck, Pencil, Plus, Power } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, FormError } from '@/components/ui/field'
+import { Initials } from '@/components/ui/initials'
+import { Stat } from '@/components/ui/stat'
+import { useToast } from '@/components/ui/toast'
+import { cn } from '@/lib/utils'
 import { createCompany, fetchCompanies, updateCompany, type Company } from '../services/companies'
 
 const COMPANIES = ['companies']
@@ -81,14 +85,19 @@ function CreateDialog({
 
 export function CompaniesPage() {
   const queryClient = useQueryClient()
+  const notify = useToast()
   const [creating, setCreating] = useState(false)
   const [renaming, setRenaming] = useState<Company | null>(null)
   const [emailFailed, setEmailFailed] = useState(false)
   const companies = useQuery({ queryKey: COMPANIES, queryFn: fetchCompanies })
   const toggle = useMutation({
     mutationFn: (company: Company) => updateCompany(company.id, { is_active: !company.is_active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: COMPANIES }),
+    onSuccess: async (_, company) => {
+      notify(company.is_active ? 'Empresa desativada.' : 'Empresa ativada.')
+      await queryClient.invalidateQueries({ queryKey: COMPANIES })
+    },
   })
+  const activeCount = companies.data?.filter((company) => company.is_active).length ?? 0
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
@@ -112,13 +121,30 @@ export function CompaniesPage() {
         <EmptyState icon={Building2} title="Nenhuma empresa cadastrada" />
       )}
       {companies.data && companies.data.length > 0 && (
+        <div className="fx-stagger grid grid-cols-2 gap-3">
+          <Stat label="Empresas" value={companies.data.length} icon={Building2} />
+          <Stat label="Ativas" value={activeCount} icon={CircleCheck} />
+        </div>
+      )}
+      {companies.isPending && <div className="feat-skeleton h-32 rounded-xl" />}
+      {companies.data && companies.data.length > 0 && (
         <Card>
-          <ul className="divide-y divide-border">
+          <ul className="fx-stagger divide-y divide-border">
             {companies.data.map((company) => (
-              <li key={company.id} className="flex items-center gap-3 p-3">
+              <li
+                key={company.id}
+                className={cn(
+                  'flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-muted/50',
+                  !company.is_active && 'opacity-60',
+                )}
+              >
+                <Initials name={company.name} className="rounded-lg" />
                 <span className="flex-1 text-sm font-medium">{company.name}</span>
-                <Badge>{company.is_active ? 'Ativa' : 'Inativa'}</Badge>
+                <Badge variant={company.is_active ? 'success' : 'secondary'}>
+                  {company.is_active ? 'Ativa' : 'Inativa'}
+                </Badge>
                 <Button variant="ghost" size="sm" onClick={() => setRenaming(company)}>
+                  <Pencil className="size-3.5" aria-hidden />
                   Renomear
                 </Button>
                 <Button
@@ -127,6 +153,7 @@ export function CompaniesPage() {
                   disabled={toggle.isPending}
                   onClick={() => toggle.mutate(company)}
                 >
+                  <Power className="size-3.5" aria-hidden />
                   {company.is_active ? 'Desativar' : 'Ativar'}
                 </Button>
               </li>

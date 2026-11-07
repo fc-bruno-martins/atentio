@@ -42,11 +42,11 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12 text-center',
+        'fx-enter flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12 text-center backdrop-blur',
         className
       )}
     >
-      {Icon && <Icon className="h-10 w-10 text-primary-ink/30" />}
+      {Icon && <Icon className="h-10 w-10 text-primary-ink/50 drop-shadow-[0_0_12px_rgb(37_226_175/0.5)]" />}
       <div>
         <p className="text-sm font-medium text-foreground">{title}</p>
         {subtitle && (

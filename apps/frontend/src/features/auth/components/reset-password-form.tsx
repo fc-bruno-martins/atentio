@@ -6,6 +6,7 @@ import type { FormEvent } from 'react'
 import { AuthShell } from '@/components/brand/AuthShell'
 import { Button } from '@/components/ui/button'
 import { Field, FormError } from '@/components/ui/field'
+import { PasswordField } from '@/components/ui/password-field'
 import { resetPassword } from '../services/auth'
 
 export function ResetPasswordForm({ token }: { token: string }) {
@@ -24,10 +25,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         </p>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Field
-            id="password"
-            label="Nova senha"
-            type="password"
+          <PasswordField id="password" label="Nova senha" meter
             autoComplete="new-password"
             minLength={12}
             required

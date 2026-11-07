@@ -46,7 +46,7 @@ it('lista os próprios números', async () => {
   expect(screen.getByText('Conectado')).toBeInTheDocument()
 })
 
-it('mostra cada canal e o Slack como em breve', async () => {
+it('mostra cada conector e o Slack como em breve', async () => {
   mockApi({ [CHANNELS]: { body: CATALOG }, [LIST]: { body: [] } })
   renderWithQuery(<ChannelsPage />)
   expect(await screen.findByText('Nenhuma conta conectada.')).toBeInTheDocument()
@@ -170,4 +170,24 @@ it('só desconecta depois da confirmação', async () => {
   expect(calls.some((call) => call.key === disconnect)).toBe(false)
   await userEvent.click(screen.getByRole('button', { name: 'Confirmar desconexão' }))
   await waitFor(() => expect(calls.some((call) => call.key === disconnect)).toBe(true))
+})
+
+it('separa conectores de entrada e de saída', async () => {
+  mockApi({
+    [CHANNELS]: { body: CATALOG },
+    [LIST]: { body: [] },
+    'GET /api/v1/output-connectors': {
+      body: [
+        { id: 'notion', name: 'Notion', action: 'Cria uma página', tool: 'notion.create_page', status: 'demo', note: null },
+        { id: 'whatsapp', name: 'WhatsApp', action: 'Envia o resumo', tool: 'whatsapp.send_message', status: 'blocked', note: 'Bloqueado: somente leitura.' },
+      ],
+    },
+  })
+  renderWithQuery(<ChannelsPage />)
+  expect(screen.getByRole('heading', { name: 'Conectores de entrada' })).toBeInTheDocument()
+  const outputs = await screen.findByRole('list', { name: 'Conectores de saída' })
+  expect(await within(outputs).findByText('Notion')).toBeInTheDocument()
+  expect(within(outputs).getByText('Simulação')).toBeInTheDocument()
+  expect(within(outputs).getByRole('button', { name: /Conectar Notion/ })).toBeInTheDocument()
+  expect(within(outputs).getByText('Bloqueado: somente leitura.')).toBeInTheDocument()
 })
