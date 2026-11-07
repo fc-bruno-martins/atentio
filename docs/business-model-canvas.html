@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atentio · Business Model Canvas</title>
+<style>
+  :root {
+    --ink: #1a1f36;
+    --quiet: #5b6275;
+    --line: #c9ced8;
+    --accent: #1d5bd8;
+    --accent-tint: #eef3fd;
+    --bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8eaf0;
+      --quiet: #a3a9b8;
+      --line: #3a4152;
+      --accent: #6c9bff;
+      --accent-tint: #1b2640;
+      --bg: #12151c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header { max-width: 1280px; margin: 0 auto 20px; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  header p { margin: 0; color: var(--quiet); }
+  .canvas {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-areas:
+      "parcerias parcerias atividades atividades proposta proposta relacionamento relacionamento segmento segmento"
+      "parcerias parcerias recursos   recursos   proposta proposta canais         canais         segmento segmento"
+      "custos    custos    custos     custos     custos   receita  receita        receita        receita  receita";
+  }
+  .block {
+    border: 1.25px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 18px;
+  }
+  .block.main {
+    border: 2px solid var(--accent);
+    background: var(--accent-tint);
+  }
+  .block h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    font-size: 16px;
+  }
+  .num {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    font-size: 13px;
+  }
+  ul { margin: 0; padding-left: 18px; }
+  li + li { margin-top: 6px; }
+  #parcerias { grid-area: parcerias; }
+  #atividades { grid-area: atividades; }
+  #recursos { grid-area: recursos; }
+  #proposta { grid-area: proposta; }
+  #relacionamento { grid-area: relacionamento; }
+  #canais { grid-area: canais; }
+  #segmento { grid-area: segmento; }
+  #custos { grid-area: custos; }
+  #receita { grid-area: receita; }
+  .competitors {
+    max-width: 1280px;
+    margin: 10px auto 0;
+  }
+  .competitors .grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .competitors h3 { margin: 0 0 4px; font-size: 14px; }
+  .competitors .who { margin: 0 0 6px; color: var(--quiet); font-size: 13px; }
+  .competitors p { margin: 0; }
+  .competitors .edge { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+  @media (max-width: 800px) {
+    body { padding: 16px; }
+    .canvas {
+      grid-template-columns: 1fr;
+      grid-template-areas: "segmento" "proposta" "canais" "relacionamento" "receita" "recursos" "atividades" "parcerias" "custos";
+    }
+    .competitors .grid { grid-template-columns: 1fr; }
+  }
+  @media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    :root { --ink: #1a1f36; --quiet: #5b6275; --line: #c9ced8; --accent: #1d5bd8; --accent-tint: #eef3fd; --bg: #fff; }
+    body { padding: 0; font-size: 12px; }
+    .block { break-inside: avoid; padding: 10px 12px; }
+    .block.main { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Atentio: nenhum cliente esquecido pelo gestor de CS</h1>
+  <p>Business Model Canvas · preço e canais são hipóteses a validar no piloto</p>
+</header>
+
+<main class="canvas">
+  <section class="block" id="parcerias">
+    <h2><span class="num">8</span>Parcerias-chave</h2>
+    <ul>
+      <li>Anthropic (Claude e MCP)</li>
+      <li>OpenRouter (modelos)</li>
+      <li>Slack</li>
+      <li>Evolution API (WhatsApp)</li>
+      <li>Provedor de VPS</li>
+    </ul>
+  </section>
+
+  <section class="block" id="atividades">
+    <h2><span class="num">7</span>Atividades-chave</h2>
+    <ul>
+      <li>Captura sem perda</li>
+      <li>Agente e análises</li>
+      <li>Novos canais (Slack)</li>
+      <li>Segurança e privacidade</li>
+    </ul>
+  </section>
+
+  <section class="block" id="recursos">
+    <h2><span class="num">6</span>Recursos-chave</h2>
+    <ul>
+      <li>Agente de IA</li>
+      <li>Caixa única multicanal</li>
+      <li>Servidor MCP</li>
+      <li>Plataforma multiempresa</li>
+    </ul>
+  </section>
+
+  <section class="block main" id="proposta">
+    <h2><span class="num">2</span>Proposta de valor</h2>
+    <ul>
+      <li>Nenhum cliente esquecido</li>
+      <li>Quem está sem resposta hoje</li>
+      <li>Resumo semanal por conta</li>
+      <li>Sinais de risco nas conversas</li>
+      <li>Zero digitação: sem CRM para preencher</li>
+      <li>Somente leitura</li>
+    </ul>
+  </section>
+
+  <section class="block" id="relacionamento">
+    <h2><span class="num">4</span>Relacionamento</h2>
+    <ul>
+      <li>Implantação por empresa</li>
+      <li>Prompts de CS prontos</li>
+      <li>Piloto assistido de 30 dias</li>
+    </ul>
+  </section>
+
+  <section class="block" id="canais">
+    <h2><span class="num">3</span>Canais</h2>
+    <ul>
+      <li>Venda direta ao head de CS</li>
+      <li>Comunidades de CS</li>
+      <li>Conector no Claude (MCP)</li>
+    </ul>
+  </section>
+
+  <section class="block" id="segmento">
+    <h2><span class="num">1</span>Segmento de clientes</h2>
+    <ul>
+      <li>Gestores de CS B2B</li>
+      <li>Times de 5 a 50 pessoas</li>
+      <li>Atendem clientes em diversos conectores</li>
+      <li>Dor: pedidos e riscos perdidos no volume</li>
+    </ul>
+  </section>
+
+  <section class="block" id="custos">
+    <h2><span class="num">9</span>Estrutura de custos</h2>
+    <ul>
+      <li>Infraestrutura por conta conectada</li>
+      <li>Consumo de IA por análise</li>
+      <li>Implantação e suporte</li>
+    </ul>
+  </section>
+
+  <section class="block" id="receita">
+    <h2><span class="num">5</span>Fontes de receita</h2>
+    <ul>
+      <li>Assinatura por gestor conectado</li>
+      <li>Plano por empresa</li>
+      <li>Valores a validar no piloto</li>
+    </ul>
+  </section>
+</main>
+
+<section class="block competitors" id="concorrentes">
+  <h2><span class="num">10</span>Concorrentes</h2>
+  <div class="grid">
+    <div>
+      <h3>Plataformas de Customer Success</h3>
+      <p class="who">Gainsight, ChurnZero, Totango, Vitally, Planhat; no Brasil, SenseData e CustomerX</p>
+      <p>Saúde da conta a partir de CRM, produto e cadastros. Dependem de integração e de dados preenchidos pelo time.</p>
+    </div>
+    <div>
+      <h3>Caixas de atendimento omnichannel</h3>
+      <p class="who">Blip, Zenvia, Octadesk, Kommo</p>
+      <p>Centralizam e respondem mensagens em escala, com foco em atendimento e envio, não no relacionamento por conta.</p>
+    </div>
+    <div>
+      <h3>Alternativa atual</h3>
+      <p class="who">WhatsApp e Slack no celular, planilha e memória do gestor</p>
+      <p>Custo zero, mas pedidos e sinais de risco se perdem no volume.</p>
+    </div>
+  </div>
+  <p class="edge"><strong>Diferencial:</strong> o Atentio lê as conversas onde o cliente já fala, sem migrar canal e sem ninguém digitar nada.</p>
+</section>
+</body>
+</html>

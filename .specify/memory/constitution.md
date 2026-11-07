@@ -96,6 +96,9 @@ Racional: a arquitetura em camadas só se paga se cada camada for verificável i
 - **Backend / MCP / Workers**: Python, com FastAPI no backend, services, repositories, SQLAlchemy
   e migrações Alembic; PostgreSQL como banco; Redis para filas e cache.
 - **WhatsApp**: Evolution API pela imagem oficial, sem fork. Integração somente leitura no MVP.
+- **Conectores**: conectores de entrada são somente leitura. Conectores de saída (por MCP) MUST
+  publicar apenas depois de aprovação humana explícita da pessoa dona da análise, com rastro de
+  cada chamada; enviar pelo WhatsApp continua proibido (ADR 0012).
 - **IA**: transcrição e leitura de imagens via OpenAI; agente via OpenRouter, com modelo,
   parâmetros e prompt configuráveis por usuário pelo admin.
 - **MCP**: servidor remoto para Claude Desktop, celular e web, com autenticação feita na
@@ -127,4 +130,4 @@ Racional: a arquitetura em camadas só se paga se cada camada for verificável i
 - O Revisor de PR e o Tech Lead verificam a conformidade em todo PR.
 - Orientação operacional do dia a dia fica em `CLAUDE.md`.
 
-**Version**: 2.2.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-11-02
+**Version**: 2.3.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-11-07

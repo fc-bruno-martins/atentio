@@ -37,6 +37,9 @@ via **servidor MCP**, para que o usuário identifique pontos de atenção ou de 
 | Q14 | Agente | **Ambos**: a plataforma analisa com o agente interno e o MCP entrega dados ao Claude (opção C, 2026-11-02). |
 | — | Conversas | Cada pessoa vê os próprios grupos e conversas na plataforma, com filtro por data, e analisa períodos ou mensagens selecionadas (2026-11-02). |
 | — | Minha Atividade | Board pessoal de tarefas com canal de origem, conversa, contexto e acompanhamento. O agente só cria tarefas quando a pessoa pede; não há criação automática (2026-11-03). |
+| — | Posicionamento | A Atentio apoia times de Customer Success, principalmente gestores, a não perder o relacionamento com o cliente (2026-11-07). |
+| — | Conectores de entrada e de saída | Entrada: WhatsApp (ativo), Slack, Teams, Discord e ClickUp (em breve). Saída: Notion, Jira, ClickUp e Azure DevOps, por chamada de ferramenta MCP, em simulação (mock) por decisão do usuário. WhatsApp de saída fica bloqueado (ADR 0009). Publicação só com aprovação humana (ADR 0012, constitution 2.3.0) (2026-11-07). |
+| — | Agente publicador | Último agente do pipeline. Propõe resumo e pendências, espera a revisão humana (aprovar, editar ou descartar) e só então publica nos conectores de saída (2026-11-07). |
 
 ## Perguntas em aberto
 
